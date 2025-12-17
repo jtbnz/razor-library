@@ -1,0 +1,21 @@
+RewriteEngine On
+
+# Handle Authorization Header
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Redirect Trailing Slashes If Not A Folder
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [L,R=301]
+
+# Allow direct access to existing files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Handle /uploads/ requests - serve from data directory
+RewriteRule ^uploads/(.*)$ /uploads.php?path=$1 [L,QSA]
+
+# Send all other requests to index.php
+RewriteRule ^ index.php [L]

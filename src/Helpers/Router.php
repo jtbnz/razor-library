@@ -114,7 +114,10 @@ class Router
             return;
         }
 
-        call_user_func_array([$controller, $method], $params);
+        $result = call_user_func_array([$controller, $method], $params);
+        if (is_string($result)) {
+            echo $result;
+        }
     }
 
     private function notFound(): void

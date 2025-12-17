@@ -96,13 +96,13 @@ $router->post('/setup', 'AuthController@setup');
 // Share routes (public with token)
 $router->get('/share/{token}', 'ShareController@index');
 $router->get('/share/{token}/razors', 'ShareController@razors');
-$router->get('/share/{token}/razors/{id}', 'ShareController@razorDetail');
+$router->get('/share/{token}/razors/{id}', 'ShareController@razor');
 $router->get('/share/{token}/blades', 'ShareController@blades');
-$router->get('/share/{token}/blades/{id}', 'ShareController@bladeDetail');
+$router->get('/share/{token}/blades/{id}', 'ShareController@blade');
 $router->get('/share/{token}/brushes', 'ShareController@brushes');
-$router->get('/share/{token}/brushes/{id}', 'ShareController@brushDetail');
+$router->get('/share/{token}/brushes/{id}', 'ShareController@brush');
 $router->get('/share/{token}/other', 'ShareController@other');
-$router->get('/share/{token}/other/{id}', 'ShareController@otherDetail');
+$router->get('/share/{token}/other/{id}', 'ShareController@otherItem');
 
 // Protected routes (require authentication)
 $router->get('/dashboard', 'DashboardController@index', ['auth']);
@@ -146,7 +146,7 @@ $router->post('/brushes/{id}/images', 'BrushController@uploadImage', ['auth']);
 $router->post('/brushes/{id}/images/{imageId}/delete', 'BrushController@deleteImage', ['auth']);
 $router->post('/brushes/{id}/urls', 'BrushController@addUrl', ['auth']);
 $router->post('/brushes/{id}/urls/{urlId}/delete', 'BrushController@deleteUrl', ['auth']);
-$router->post('/brushes/{id}/usage', 'BrushController@updateUsage', ['auth']);
+$router->post('/brushes/{id}/use', 'BrushController@incrementUsage', ['auth']);
 
 // Other items
 $router->get('/other', 'OtherController@index', ['auth']);
@@ -164,18 +164,16 @@ $router->post('/other/{id}/urls/{urlId}/delete', 'OtherController@deleteUrl', ['
 // Profile
 $router->get('/profile', 'ProfileController@index', ['auth']);
 $router->post('/profile', 'ProfileController@update', ['auth']);
-$router->post('/profile/regenerate-share-link', 'ProfileController@regenerateShareLink', ['auth']);
+$router->post('/profile/regenerate-share-token', 'ProfileController@regenerateShareToken', ['auth']);
 $router->get('/profile/export', 'ProfileController@export', ['auth']);
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);
-$router->get('/admin/users/new', 'AdminController@createUser', ['auth', 'admin']);
-$router->post('/admin/users', 'AdminController@storeUser', ['auth', 'admin']);
-$router->post('/admin/users/{id}/delete', 'AdminController@deleteUser', ['auth', 'admin']);
-$router->post('/admin/splash', 'AdminController@uploadSplash', ['auth', 'admin']);
-
-// Image serving (for uploaded images)
-$router->get('/uploads/{path}', 'ImageController@serve');
+$router->get('/admin/users/new', 'AdminController@create', ['auth', 'admin']);
+$router->post('/admin/users', 'AdminController@store', ['auth', 'admin']);
+$router->get('/admin/users/{id}/edit', 'AdminController@edit', ['auth', 'admin']);
+$router->post('/admin/users/{id}', 'AdminController@update', ['auth', 'admin']);
+$router->post('/admin/users/{id}/delete', 'AdminController@delete', ['auth', 'admin']);
 
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);
