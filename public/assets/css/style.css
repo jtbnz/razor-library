@@ -1062,6 +1062,162 @@ img {
 .gap-3 { gap: var(--spacing-lg); }
 
 /* ============================================
+   Stats Grid
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.stat-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+}
+
+.stat-value {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* ============================================
+   Specification List
+   ============================================ */
+.spec-list {
+    margin: 0;
+    padding: 0;
+}
+
+.spec-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.spec-item:last-child {
+    border-bottom: none;
+}
+
+.spec-item dt {
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.spec-item dd {
+    margin: 0;
+    font-weight: 500;
+    text-align: right;
+}
+
+/* ============================================
+   Card Component (for profile)
+   ============================================ */
+.card {
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+}
+
+/* ============================================
+   Horizontal Rule
+   ============================================ */
+hr {
+    border: none;
+    border-top: 1px solid var(--color-border-light);
+    margin: var(--spacing-lg) 0;
+}
+
+.my-4 {
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table th,
+.table td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.table th {
+    background: var(--color-bg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: var(--color-bg);
+}
+
+/* ============================================
+   Checkbox styling
+   ============================================ */
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+/* ============================================
    Print Styles
    ============================================ */
 @media print {
