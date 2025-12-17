@@ -1,0 +1,549 @@
+<?php
+/**
+ * Other Items Controller
+ * Handles bowls, soaps, balms, splashes, and fragrances
+ */
+
+class OtherController
+{
+    private const CATEGORIES = [
+        'bowl' => 'Bowls',
+        'soap' => 'Soaps',
+        'balm' => 'Balms',
+        'splash' => 'Splashes',
+        'fragrance' => 'Fragrances',
+    ];
+
+    /**
+     * Display all other items for current user
+     */
+    public function index(): string
+    {
+        $userId = $_SESSION['user_id'];
+        $category = $_GET['category'] ?? 'all';
+        $sort = $_GET['sort'] ?? 'name';
+
+        $orderBy = match ($sort) {
+            'date' => 'created_at DESC',
+            default => 'name ASC',
+        };
+
+        $params = [$userId];
+        $categoryFilter = '';
+        if ($category !== 'all' && isset(self::CATEGORIES[$category])) {
+            $categoryFilter = 'AND category = ?';
+            $params[] = $category;
+        }
+
+        $items = Database::fetchAll(
+            "SELECT * FROM other_items
+             WHERE user_id = ? AND deleted_at IS NULL {$categoryFilter}
+             ORDER BY {$orderBy}",
+            $params
+        );
+
+        return view('other/index', [
+            'items' => $items,
+            'categories' => self::CATEGORIES,
+            'currentCategory' => $category,
+            'sort' => $sort,
+        ]);
+    }
+
+    /**
+     * Show create item form
+     */
+    public function create(): string
+    {
+        $category = $_GET['category'] ?? 'soap';
+        if (!isset(self::CATEGORIES[$category])) {
+            $category = 'soap';
+        }
+
+        return view('other/create', [
+            'categories' => self::CATEGORIES,
+            'selectedCategory' => $category,
+        ]);
+    }
+
+    /**
+     * Store a new item
+     */
+    public function store(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/other/new');
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        $category = $_POST['category'] ?? '';
+        $brand = trim($_POST['brand'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $notes = trim($_POST['notes'] ?? '');
+        $scentNotes = trim($_POST['scent_notes'] ?? '');
+
+        if (empty($name)) {
+            flash('error', 'Name is required.');
+            set_old($_POST);
+            redirect('/other/new?category=' . $category);
+        }
+
+        if (!isset(self::CATEGORIES[$category])) {
+            flash('error', 'Invalid category.');
+            set_old($_POST);
+            redirect('/other/new');
+        }
+
+        $userId = $_SESSION['user_id'];
+        $heroImage = null;
+
+        // Handle hero image upload
+        if (!empty($_FILES['hero_image']['tmp_name'])) {
+            $uploadDir = "users/{$userId}/other";
+            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
+            if ($result['success']) {
+                $heroImage = $result['filename'];
+            } else {
+                flash('error', $result['error']);
+                set_old($_POST);
+                redirect('/other/new?category=' . $category);
+            }
+        }
+
+        Database::query(
+            "INSERT INTO other_items (user_id, category, name, brand, description, notes, scent_notes, hero_image)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null, $heroImage]
+        );
+
+        $itemId = Database::lastInsertId();
+
+        // Handle attributes based on category
+        $this->saveAttributes($itemId, $category, $_POST);
+
+        clear_old();
+        flash('success', ucfirst($category) . ' added successfully.');
+        redirect("/other/{$itemId}");
+    }
+
+    /**
+     * Show item details
+     */
+    public function show(int $id): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            http_response_code(404);
+            return view('errors/404');
+        }
+
+        // Get attributes
+        $attributes = Database::fetchAll(
+            "SELECT * FROM other_item_attributes WHERE item_id = ? ORDER BY attribute_name",
+            [$id]
+        );
+
+        // Get additional images
+        $images = Database::fetchAll(
+            "SELECT * FROM other_item_images WHERE item_id = ? ORDER BY created_at DESC",
+            [$id]
+        );
+
+        // Get URLs
+        $urls = Database::fetchAll(
+            "SELECT * FROM other_item_urls WHERE item_id = ? ORDER BY created_at DESC",
+            [$id]
+        );
+
+        return view('other/show', [
+            'item' => $item,
+            'attributes' => $attributes,
+            'images' => $images,
+            'urls' => $urls,
+            'categories' => self::CATEGORIES,
+        ]);
+    }
+
+    /**
+     * Show edit item form
+     */
+    public function edit(int $id): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            http_response_code(404);
+            return view('errors/404');
+        }
+
+        // Get attributes as key-value array
+        $attributeRows = Database::fetchAll(
+            "SELECT attribute_name, attribute_value FROM other_item_attributes WHERE item_id = ?",
+            [$id]
+        );
+        $attributes = [];
+        foreach ($attributeRows as $row) {
+            $attributes[$row['attribute_name']] = $row['attribute_value'];
+        }
+
+        return view('other/edit', [
+            'item' => $item,
+            'attributes' => $attributes,
+            'categories' => self::CATEGORIES,
+        ]);
+    }
+
+    /**
+     * Update an item
+     */
+    public function update(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$id}/edit");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            http_response_code(404);
+            echo view('errors/404');
+            return;
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        $category = $_POST['category'] ?? $item['category'];
+        $brand = trim($_POST['brand'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $notes = trim($_POST['notes'] ?? '');
+        $scentNotes = trim($_POST['scent_notes'] ?? '');
+
+        if (empty($name)) {
+            flash('error', 'Name is required.');
+            redirect("/other/{$id}/edit");
+        }
+
+        if (!isset(self::CATEGORIES[$category])) {
+            $category = $item['category'];
+        }
+
+        $heroImage = $item['hero_image'];
+
+        // Handle hero image upload
+        if (!empty($_FILES['hero_image']['tmp_name'])) {
+            $uploadDir = "users/{$userId}/other";
+            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
+            if ($result['success']) {
+                // Delete old image
+                if ($heroImage) {
+                    ImageHandler::delete($uploadDir, $heroImage);
+                }
+                $heroImage = $result['filename'];
+            } else {
+                flash('error', $result['error']);
+                redirect("/other/{$id}/edit");
+            }
+        }
+
+        Database::query(
+            "UPDATE other_items SET category = ?, name = ?, brand = ?, description = ?, notes = ?, scent_notes = ?, hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null, $heroImage, $id]
+        );
+
+        // Update attributes
+        Database::query("DELETE FROM other_item_attributes WHERE item_id = ?", [$id]);
+        $this->saveAttributes($id, $category, $_POST);
+
+        flash('success', ucfirst($category) . ' updated successfully.');
+        redirect("/other/{$id}");
+    }
+
+    /**
+     * Delete an item (soft delete)
+     */
+    public function delete(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/other');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        Database::query(
+            "UPDATE other_items SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$id]
+        );
+
+        flash('success', 'Item deleted successfully.');
+        redirect('/other');
+    }
+
+    /**
+     * Upload additional image
+     */
+    public function uploadImage(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$id}");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        if (empty($_FILES['image']['tmp_name'])) {
+            flash('error', 'Please select an image.');
+            redirect("/other/{$id}");
+        }
+
+        $uploadDir = "users/{$userId}/other";
+        $result = ImageHandler::upload($_FILES['image'], $uploadDir);
+
+        if (!$result['success']) {
+            flash('error', $result['error']);
+            redirect("/other/{$id}");
+        }
+
+        Database::query(
+            "INSERT INTO other_item_images (item_id, filename) VALUES (?, ?)",
+            [$id, $result['filename']]
+        );
+
+        flash('success', 'Image uploaded successfully.');
+        redirect("/other/{$id}");
+    }
+
+    /**
+     * Delete additional image
+     */
+    public function deleteImage(int $itemId, int $imageId): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$itemId}");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$itemId, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        $image = Database::fetch(
+            "SELECT * FROM other_item_images WHERE id = ? AND item_id = ?",
+            [$imageId, $itemId]
+        );
+
+        if (!$image) {
+            flash('error', 'Image not found.');
+            redirect("/other/{$itemId}");
+        }
+
+        // Delete file
+        $uploadDir = "users/{$userId}/other";
+        ImageHandler::delete($uploadDir, $image['filename']);
+
+        // Delete record
+        Database::query("DELETE FROM other_item_images WHERE id = ?", [$imageId]);
+
+        flash('success', 'Image deleted successfully.');
+        redirect("/other/{$itemId}");
+    }
+
+    /**
+     * Add URL to item
+     */
+    public function addUrl(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$id}");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        $url = trim($_POST['url'] ?? '');
+        $description = trim($_POST['url_description'] ?? '');
+
+        if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+            flash('error', 'Please enter a valid URL.');
+            redirect("/other/{$id}");
+        }
+
+        Database::query(
+            "INSERT INTO other_item_urls (item_id, url, description) VALUES (?, ?, ?)",
+            [$id, $url, $description ?: null]
+        );
+
+        flash('success', 'URL added successfully.');
+        redirect("/other/{$id}");
+    }
+
+    /**
+     * Delete URL from item
+     */
+    public function deleteUrl(int $itemId, int $urlId): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$itemId}");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$itemId, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        Database::query(
+            "DELETE FROM other_item_urls WHERE id = ? AND item_id = ?",
+            [$urlId, $itemId]
+        );
+
+        flash('success', 'URL deleted successfully.');
+        redirect("/other/{$itemId}");
+    }
+
+    /**
+     * Save category-specific attributes
+     */
+    private function saveAttributes(int $itemId, string $category, array $data): void
+    {
+        $attributeFields = $this->getAttributeFields($category);
+
+        foreach ($attributeFields as $field => $label) {
+            $value = trim($data[$field] ?? '');
+            if (!empty($value)) {
+                Database::query(
+                    "INSERT INTO other_item_attributes (item_id, attribute_name, attribute_value) VALUES (?, ?, ?)",
+                    [$itemId, $field, $value]
+                );
+            }
+        }
+    }
+
+    /**
+     * Get attribute fields for a category
+     */
+    private function getAttributeFields(string $category): array
+    {
+        return match ($category) {
+            'bowl' => [
+                'material' => 'Material',
+                'size' => 'Size',
+                'color' => 'Color',
+            ],
+            'soap' => [
+                'base' => 'Base/Formula',
+                'size' => 'Size',
+                'scent_strength' => 'Scent Strength',
+            ],
+            'balm' => [
+                'size' => 'Size',
+                'skin_type' => 'Skin Type',
+            ],
+            'splash' => [
+                'size' => 'Size',
+                'alcohol_content' => 'Alcohol Content',
+            ],
+            'fragrance' => [
+                'type' => 'Type',
+                'size' => 'Size',
+                'concentration' => 'Concentration',
+            ],
+            default => [],
+        };
+    }
+
+    /**
+     * Get attribute fields for views
+     */
+    public static function getCategoryAttributes(string $category): array
+    {
+        return match ($category) {
+            'bowl' => [
+                'material' => 'Material',
+                'size' => 'Size',
+                'color' => 'Color',
+            ],
+            'soap' => [
+                'base' => 'Base/Formula',
+                'size' => 'Size',
+                'scent_strength' => 'Scent Strength',
+            ],
+            'balm' => [
+                'size' => 'Size',
+                'skin_type' => 'Skin Type',
+            ],
+            'splash' => [
+                'size' => 'Size',
+                'alcohol_content' => 'Alcohol Content',
+            ],
+            'fragrance' => [
+                'type' => 'Type',
+                'size' => 'Size',
+                'concentration' => 'Concentration',
+            ],
+            default => [],
+        };
+    }
+}
