@@ -120,31 +120,45 @@
             <?php endif; ?>
         </div>
 
-        <!-- Additional Images -->
+        <!-- Images -->
         <div class="detail-section">
-            <h3>Additional Images</h3>
+            <h3>Images</h3>
             <?php if (!empty($images)): ?>
             <div class="image-gallery">
                 <?php foreach ($images as $image): ?>
-                <div class="image-gallery-item">
+                <div class="image-gallery-item <?= $image['filename'] === $razor['hero_image'] ? 'is-hero' : '' ?>">
                     <img src="<?= upload_url("users/{$_SESSION['user_id']}/razors/" . str_replace('.', '_thumb.', $image['filename'])) ?>"
                          alt="Additional image"
                          loading="lazy">
-                    <form action="/razors/<?= $razor['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
-                    </form>
+                    <?php if ($image['filename'] === $razor['hero_image']): ?>
+                    <span class="hero-badge">Tile</span>
+                    <?php endif; ?>
+                    <div class="image-actions">
+                        <?php if ($image['filename'] !== $razor['hero_image']): ?>
+                        <form action="/razors/<?= $razor['id'] ?>/images/<?= $image['id'] ?>/hero" method="POST" style="display:inline;">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="hero-btn" title="Set as tile image">&#9733;</button>
+                        </form>
+                        <?php endif; ?>
+                        <form action="/razors/<?= $razor['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST" style="display:inline;">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
+                        </form>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php else: ?>
+            <p class="text-muted">No images uploaded yet.</p>
             <?php endif; ?>
 
             <form action="/razors/<?= $razor['id'] ?>/images" method="POST" enctype="multipart/form-data" class="mt-3">
                 <?= csrf_field() ?>
-                <div class="d-flex gap-2 flex-wrap">
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" required>
-                    <button type="submit" class="btn btn-outline">Upload Image</button>
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
+                    <button type="submit" class="btn btn-outline">Upload Images</button>
                 </div>
+                <p class="form-hint mt-1">You can select multiple images at once.</p>
             </form>
         </div>
     </div>

@@ -245,7 +245,7 @@ class RazorController
     }
 
     /**
-     * Upload additional image
+     * Upload additional image(s) - supports multiple file upload
      */
     public function uploadImage(string $id): void
     {
@@ -267,34 +267,108 @@ class RazorController
             return;
         }
 
-        if (empty($_FILES['image']['name'])) {
-            flash('error', 'No image selected.');
+        // Handle multiple file uploads
+        $files = $_FILES['images'] ?? $_FILES['image'] ?? null;
+        if (!$files || empty($files['name'][0] ?? $files['name'])) {
+            flash('error', 'No images selected.');
             redirect('/razors/' . $id);
             return;
         }
 
-        $result = ImageHandler::processUpload(
-            $_FILES['image'],
-            "users/{$this->userId}/razors"
-        );
-
-        if (!$result) {
-            flash('error', 'Failed to upload image.');
-            redirect('/razors/' . $id);
-            return;
+        // Normalize to array format for multiple files
+        if (!is_array($files['name'])) {
+            $files = [
+                'name' => [$files['name']],
+                'type' => [$files['type']],
+                'tmp_name' => [$files['tmp_name']],
+                'error' => [$files['error']],
+                'size' => [$files['size']],
+            ];
         }
 
-        Database::query(
-            "INSERT INTO razor_images (razor_id, filename) VALUES (?, ?)",
-            [$razor['id'], $result['filename']]
-        );
+        $uploaded = 0;
+        $firstImageId = null;
+
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $file = [
+                'name' => $files['name'][$i],
+                'type' => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error' => $files['error'][$i],
+                'size' => $files['size'][$i],
+            ];
+
+            $result = ImageHandler::processUpload($file, "users/{$this->userId}/razors");
+
+            if ($result) {
+                Database::query(
+                    "INSERT INTO razor_images (razor_id, filename) VALUES (?, ?)",
+                    [$razor['id'], $result['filename']]
+                );
+                $uploaded++;
+
+                if ($firstImageId === null) {
+                    $firstImageId = Database::lastInsertId();
+                }
+
+                // If no hero image set yet, use the first uploaded image
+                if (!$razor['hero_image']) {
+                    Database::query(
+                        "UPDATE razors SET hero_image = ? WHERE id = ?",
+                        [$result['filename'], $razor['id']]
+                    );
+                    $razor['hero_image'] = $result['filename'];
+                }
+            }
+        }
 
         if (is_ajax()) {
-            json_response(['success' => true, 'filename' => $result['filename']]);
+            json_response(['success' => true, 'uploaded' => $uploaded]);
             return;
         }
 
-        flash('success', 'Image uploaded.');
+        if ($uploaded > 0) {
+            flash('success', $uploaded . ' image(s) uploaded.');
+        } else {
+            flash('error', 'Failed to upload images.');
+        }
+        redirect('/razors/' . $id);
+    }
+
+    /**
+     * Set an image as the hero/tile image
+     */
+    public function setHeroImage(string $id, string $imageId): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/razors/' . $id);
+            return;
+        }
+
+        $razor = $this->getRazor($id);
+        if (!$razor) {
+            redirect('/razors');
+            return;
+        }
+
+        $image = Database::fetch(
+            "SELECT * FROM razor_images WHERE id = ? AND razor_id = ?",
+            [$imageId, $razor['id']]
+        );
+
+        if ($image) {
+            Database::query(
+                "UPDATE razors SET hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$image['filename'], $razor['id']]
+            );
+            flash('success', 'Hero image updated.');
+        }
+
         redirect('/razors/' . $id);
     }
 

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body>
-    <div class="landing-hero" style="background-image: url('<?= asset('images/hero1.jpg') ?>');">
+    <div class="landing-hero" style="background-image: url('<?= asset('images/hero1.jpeg') ?>');">
         <div class="landing-hero-overlay"></div>
         <div class="landing-hero-content">
             <h1 class="landing-logo">Razor Library</h1>

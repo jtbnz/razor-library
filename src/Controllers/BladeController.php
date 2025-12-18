@@ -255,7 +255,7 @@ class BladeController
     }
 
     /**
-     * Upload additional image
+     * Upload additional image(s) - supports multiple file upload
      */
     public function uploadImage(int $id): void
     {
@@ -276,25 +276,114 @@ class BladeController
             redirect('/blades');
         }
 
-        if (empty($_FILES['image']['tmp_name'])) {
-            flash('error', 'Please select an image.');
+        // Handle multiple file uploads
+        $files = $_FILES['images'] ?? $_FILES['image'] ?? null;
+        if (!$files || empty($files['name'][0] ?? $files['name'])) {
+            flash('error', 'No images selected.');
             redirect("/blades/{$id}");
+            return;
+        }
+
+        // Normalize to array format for multiple files
+        if (!is_array($files['name'])) {
+            $files = [
+                'name' => [$files['name']],
+                'type' => [$files['type']],
+                'tmp_name' => [$files['tmp_name']],
+                'error' => [$files['error']],
+                'size' => [$files['size']],
+            ];
         }
 
         $uploadDir = "users/{$userId}/blades";
-        $result = ImageHandler::upload($_FILES['image'], $uploadDir);
+        $uploaded = 0;
+        $errors = [];
 
-        if (!$result['success']) {
-            flash('error', $result['error']);
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if (empty($files['tmp_name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $singleFile = [
+                'name' => $files['name'][$i],
+                'type' => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error' => $files['error'][$i],
+                'size' => $files['size'][$i],
+            ];
+
+            $result = ImageHandler::upload($singleFile, $uploadDir);
+
+            if ($result['success']) {
+                Database::query(
+                    "INSERT INTO blade_images (blade_id, filename) VALUES (?, ?)",
+                    [$id, $result['filename']]
+                );
+
+                // If no hero image set yet, use the first uploaded image
+                if (!$blade['hero_image']) {
+                    Database::query(
+                        "UPDATE blades SET hero_image = ? WHERE id = ?",
+                        [$result['filename'], $blade['id']]
+                    );
+                    $blade['hero_image'] = $result['filename'];
+                }
+
+                $uploaded++;
+            } else {
+                $errors[] = $files['name'][$i] . ': ' . $result['error'];
+            }
+        }
+
+        if ($uploaded > 0) {
+            $msg = $uploaded === 1 ? 'Image uploaded successfully.' : "{$uploaded} images uploaded successfully.";
+            flash('success', $msg);
+        }
+        if (!empty($errors)) {
+            flash('error', 'Some uploads failed: ' . implode(', ', $errors));
+        }
+
+        redirect("/blades/{$id}");
+    }
+
+    /**
+     * Set an image as the hero/tile image
+     */
+    public function setHeroImage(int $id, int $imageId): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
             redirect("/blades/{$id}");
         }
 
-        Database::query(
-            "INSERT INTO blade_images (blade_id, filename) VALUES (?, ?)",
-            [$id, $result['filename']]
+        $userId = $_SESSION['user_id'];
+
+        $blade = Database::fetch(
+            "SELECT * FROM blades WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
         );
 
-        flash('success', 'Image uploaded successfully.');
+        if (!$blade) {
+            flash('error', 'Blade not found.');
+            redirect('/blades');
+            return;
+        }
+
+        $image = Database::fetch(
+            "SELECT * FROM blade_images WHERE id = ? AND blade_id = ?",
+            [$imageId, $blade['id']]
+        );
+
+        if ($image) {
+            Database::query(
+                "UPDATE blades SET hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$image['filename'], $blade['id']]
+            );
+            flash('success', 'Hero image updated.');
+        } else {
+            flash('error', 'Image not found.');
+        }
+
         redirect("/blades/{$id}");
     }
 
