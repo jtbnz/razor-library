@@ -10,8 +10,10 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 - **Usage Tracking**: Track blade usage per razor and brush usage counts
 - **Related URLs**: Link to product pages, reviews, or other resources
 - **Share Collections**: Generate private shareable links for your collection
+- **CSV Import**: Bulk import items from CSV spreadsheets
 - **Export**: Download your entire collection as a ZIP with images and markdown files
 - **Multi-user**: Support for multiple users with admin management
+- **Backup & Restore**: Full database and image backup/restore functionality
 - **Mobile Responsive**: Works on desktop and mobile devices
 
 ## Requirements
@@ -69,6 +71,9 @@ razor-library/
 ├── config.php              # Default configuration
 ├── config.local.php        # Local overrides (gitignored)
 ├── data/                   # SQLite database (gitignored)
+├── docs/                   # Documentation
+│   ├── user-guide.md      # User documentation
+│   └── admin-guide.md     # Administrator documentation
 ├── migrations/             # Database migrations
 ├── public/                 # Web root
 │   ├── index.php          # Application entry point
@@ -116,9 +121,10 @@ php scripts/make-admin.php <email>
 
 ### Managing Images
 
-- **Upload Multiple**: On any item's detail page, use the image upload form. Hold `Cmd` (Mac) or `Ctrl` (Windows) to select multiple files
-- **Set Tile Image**: Hover over an image and click the star button to set it as the tile image
-- **Delete Images**: Hover over an image and click the X button to delete
+- **Upload Multiple**: When creating an item or on any item's detail page, you can select multiple images at once. Hold `Cmd` (Mac) or `Ctrl` (Windows) to select multiple files
+- **Automatic Hero**: The first image uploaded becomes the hero/tile image automatically
+- **Set Tile Image**: Click the star icon on any gallery image to set it as the tile/hero image
+- **Delete Images**: Click the X button on any image to delete it
 
 ### Tracking Usage
 
@@ -139,6 +145,58 @@ php scripts/make-admin.php <email>
 3. A ZIP file will download containing:
    - All your images
    - Markdown files for each item
+
+### Importing from CSV
+
+Bulk import items from a spreadsheet:
+
+1. Go to Profile from the sidebar
+2. Scroll to "Import from CSV"
+3. Select the import type (Razors, Blades, or Brushes)
+4. Upload your CSV file
+5. Click "Import"
+
+**CSV Format:**
+- Razors: `Brand, Name, UseCount, Notes`
+- Blades: `Brand, Name, Notes`
+- Brushes: `Brand, Name, BristleType, KnotSize, Loft, HandleMaterial, UseCount, Notes`
+
+Download sample templates from the Profile page.
+
+## Administration
+
+### Admin Panel
+
+Admin users can access the Admin panel from the navigation menu:
+
+- **User Management**: Create, edit, and delete user accounts
+- **Backup & Restore**: Create backups of the database and all images, restore from previous backups
+- **Database Reset**: Completely reset the database (with confirmation safeguards)
+
+### Backup & Restore
+
+From the Admin panel:
+
+1. **Create Backup**: Click "Create Backup Now" to generate a ZIP file containing the database and all uploaded images
+2. **Download Backup**: Download any backup for off-site storage
+3. **Restore**: Select a backup from the dropdown and click "Restore Selected" to restore the database and images
+4. **Delete**: Remove old backups to free disk space
+
+### Database Reset
+
+For a complete reset:
+
+1. Scroll to the "Danger Zone" section
+2. Type `RESET DATABASE` exactly to confirm
+3. Optionally keep uploaded images
+4. Click "Reset Database"
+
+**Warning**: This deletes all users and data. Create a backup first!
+
+## Documentation
+
+- [User Guide](docs/user-guide.md) - Complete user documentation
+- [Admin Guide](docs/admin-guide.md) - Administration and maintenance
 
 ## Development
 

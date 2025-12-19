@@ -106,7 +106,7 @@
         </div>
 
         <!-- Export -->
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h3>Export Collection</h3>
             </div>
@@ -114,6 +114,71 @@
                 <p class="text-muted mb-3">Download your entire collection as a ZIP file containing markdown files for each item and all your images.</p>
 
                 <a href="/profile/export" class="btn btn-primary">Download Collection</a>
+            </div>
+        </div>
+
+        <!-- Import CSV -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Import from CSV</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Bulk import items from a CSV file. Duplicates will be skipped automatically.</p>
+
+                <form action="/profile/import-csv" method="POST" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+
+                    <div class="form-group">
+                        <label for="import_type" class="form-label">Import Type</label>
+                        <select id="import_type" name="import_type" class="form-select" required>
+                            <option value="razors">Razors</option>
+                            <option value="blades">Blades</option>
+                            <option value="brushes">Brushes</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="csv_file" class="form-label">CSV File</label>
+                        <input type="file" id="csv_file" name="csv_file" class="form-input" accept=".csv,text/csv" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Import</button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <h4 class="mb-3">CSV Format Guide</h4>
+                <p class="text-muted mb-2">Download a template or follow these formatting guidelines:</p>
+
+                <div class="mb-3">
+                    <strong>Download Templates:</strong>
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="/profile/csv-template?type=razors" class="btn btn-sm btn-outline">Razors Template</a>
+                        <a href="/profile/csv-template?type=blades" class="btn btn-sm btn-outline">Blades Template</a>
+                        <a href="/profile/csv-template?type=brushes" class="btn btn-sm btn-outline">Brushes Template</a>
+                    </div>
+                </div>
+
+                <details class="mt-3">
+                    <summary class="cursor-pointer"><strong>Column Reference</strong></summary>
+                    <div class="mt-2 text-small">
+                        <p><strong>Razors:</strong> Brand, Name, UseCount, Notes</p>
+                        <p><strong>Blades:</strong> Brand, Name, Notes</p>
+                        <p><strong>Brushes:</strong> Brand, Name, BristleType, KnotSize, Loft, HandleMaterial, UseCount, Notes</p>
+
+                        <p class="mt-2 text-muted">
+                            <strong>Tips:</strong><br>
+                            - First row must be headers<br>
+                            - Name is required for all types<br>
+                            - Brand is combined with Name (e.g., "Gillette" + "Slim" = "Gillette Slim")<br>
+                            - Column names are case-insensitive<br>
+                            - Duplicates (same name) are automatically skipped<br>
+                            - You can add images and more details via the web interface after import
+                        </p>
+                    </div>
+                </details>
             </div>
         </div>
     </div>

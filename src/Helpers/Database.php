@@ -105,6 +105,14 @@ class Database
     }
 
     /**
+     * Close the database connection
+     */
+    public static function close(): void
+    {
+        self::$pdo = null;
+    }
+
+    /**
      * Run database migrations
      */
     private static function runMigrations(): void

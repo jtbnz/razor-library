@@ -170,6 +170,8 @@ $router->get('/profile', 'ProfileController@index', ['auth']);
 $router->post('/profile', 'ProfileController@update', ['auth']);
 $router->post('/profile/regenerate-share-token', 'ProfileController@regenerateShareToken', ['auth']);
 $router->get('/profile/export', 'ProfileController@export', ['auth']);
+$router->post('/profile/import-csv', 'ProfileController@importCsv', ['auth']);
+$router->get('/profile/csv-template', 'ProfileController@downloadTemplate', ['auth']);
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);
@@ -178,6 +180,13 @@ $router->post('/admin/users', 'AdminController@store', ['auth', 'admin']);
 $router->get('/admin/users/{id}/edit', 'AdminController@edit', ['auth', 'admin']);
 $router->post('/admin/users/{id}', 'AdminController@update', ['auth', 'admin']);
 $router->post('/admin/users/{id}/delete', 'AdminController@delete', ['auth', 'admin']);
+
+// Admin backup/restore
+$router->post('/admin/backup', 'AdminController@backup', ['auth', 'admin']);
+$router->get('/admin/backup/{filename}/download', 'AdminController@downloadBackup', ['auth', 'admin']);
+$router->post('/admin/backup/{filename}/delete', 'AdminController@deleteBackup', ['auth', 'admin']);
+$router->post('/admin/restore', 'AdminController@restore', ['auth', 'admin']);
+$router->post('/admin/reset-database', 'AdminController@resetDatabase', ['auth', 'admin']);
 
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);

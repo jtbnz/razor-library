@@ -75,24 +75,65 @@ class RazorController
             return;
         }
 
-        // Handle hero image upload
-        $heroImage = null;
-        if (!empty($_FILES['hero_image']['name'])) {
-            $result = ImageHandler::processUpload(
-                $_FILES['hero_image'],
-                "users/{$this->userId}/razors"
-            );
-            if ($result) {
-                $heroImage = $result['filename'];
-            }
-        }
-
+        // Create razor first
         Database::query(
-            "INSERT INTO razors (user_id, name, description, notes, hero_image) VALUES (?, ?, ?, ?, ?)",
-            [$this->userId, $name, $description ?: null, $notes ?: null, $heroImage]
+            "INSERT INTO razors (user_id, name, description, notes) VALUES (?, ?, ?, ?)",
+            [$this->userId, $name, $description ?: null, $notes ?: null]
         );
 
         $razorId = Database::lastInsertId();
+
+        // Handle multiple image uploads
+        $files = $_FILES['images'] ?? $_FILES['hero_image'] ?? null;
+        if ($files && !empty($files['name'][0] ?? $files['name'])) {
+            // Normalize to array format for multiple files
+            if (!is_array($files['name'])) {
+                $files = [
+                    'name' => [$files['name']],
+                    'type' => [$files['type']],
+                    'tmp_name' => [$files['tmp_name']],
+                    'error' => [$files['error']],
+                    'size' => [$files['size']],
+                ];
+            }
+
+            $heroImage = null;
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+
+                $file = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i],
+                ];
+
+                $result = ImageHandler::processUpload($file, "users/{$this->userId}/razors");
+
+                if ($result) {
+                    Database::query(
+                        "INSERT INTO razor_images (razor_id, filename) VALUES (?, ?)",
+                        [$razorId, $result['filename']]
+                    );
+
+                    // First image becomes the hero image
+                    if ($heroImage === null) {
+                        $heroImage = $result['filename'];
+                    }
+                }
+            }
+
+            // Update razor with hero image
+            if ($heroImage) {
+                Database::query(
+                    "UPDATE razors SET hero_image = ? WHERE id = ?",
+                    [$heroImage, $razorId]
+                );
+            }
+        }
 
         clear_old();
         flash('success', 'Razor added successfully.');

@@ -66,28 +66,68 @@ class BrushController
         }
 
         $userId = $_SESSION['user_id'];
-        $heroImage = null;
 
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/brushes";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                set_old($_POST);
-                redirect('/brushes/new');
-            }
-        }
-
+        // Create brush first
         Database::query(
-            "INSERT INTO brushes (user_id, name, brand, bristle_type, knot_size, loft, handle_material, description, notes, hero_image)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$userId, $name, $brand ?: null, $bristleType ?: null, $knotSize ?: null, $loft ?: null, $handleMaterial ?: null, $description ?: null, $notes ?: null, $heroImage]
+            "INSERT INTO brushes (user_id, name, brand, bristle_type, knot_size, loft, handle_material, description, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $bristleType ?: null, $knotSize ?: null, $loft ?: null, $handleMaterial ?: null, $description ?: null, $notes ?: null]
         );
 
         $brushId = Database::lastInsertId();
+
+        // Handle multiple image uploads
+        $files = $_FILES['images'] ?? $_FILES['hero_image'] ?? null;
+        if ($files && !empty($files['name'][0] ?? $files['name'])) {
+            // Normalize to array format for multiple files
+            if (!is_array($files['name'])) {
+                $files = [
+                    'name' => [$files['name']],
+                    'type' => [$files['type']],
+                    'tmp_name' => [$files['tmp_name']],
+                    'error' => [$files['error']],
+                    'size' => [$files['size']],
+                ];
+            }
+
+            $heroImage = null;
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+
+                $file = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i],
+                ];
+
+                $result = ImageHandler::processUpload($file, "users/{$userId}/brushes");
+
+                if ($result) {
+                    Database::query(
+                        "INSERT INTO brush_images (brush_id, filename) VALUES (?, ?)",
+                        [$brushId, $result['filename']]
+                    );
+
+                    // First image becomes the hero image
+                    if ($heroImage === null) {
+                        $heroImage = $result['filename'];
+                    }
+                }
+            }
+
+            // Update brush with hero image
+            if ($heroImage) {
+                Database::query(
+                    "UPDATE brushes SET hero_image = ? WHERE id = ?",
+                    [$heroImage, $brushId]
+                );
+            }
+        }
+
         clear_old();
         flash('success', 'Brush added successfully.');
         redirect("/brushes/{$brushId}");

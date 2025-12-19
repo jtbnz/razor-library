@@ -96,28 +96,67 @@ class OtherController
         }
 
         $userId = $_SESSION['user_id'];
-        $heroImage = null;
 
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/other";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                set_old($_POST);
-                redirect('/other/new?category=' . $category);
-            }
-        }
-
+        // Create item first
         Database::query(
-            "INSERT INTO other_items (user_id, category, name, brand, description, notes, scent_notes, hero_image)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [$userId, $category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null, $heroImage]
+            "INSERT INTO other_items (user_id, category, name, brand, description, notes, scent_notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null]
         );
 
         $itemId = Database::lastInsertId();
+
+        // Handle multiple image uploads
+        $files = $_FILES['images'] ?? $_FILES['hero_image'] ?? null;
+        if ($files && !empty($files['name'][0] ?? $files['name'])) {
+            // Normalize to array format for multiple files
+            if (!is_array($files['name'])) {
+                $files = [
+                    'name' => [$files['name']],
+                    'type' => [$files['type']],
+                    'tmp_name' => [$files['tmp_name']],
+                    'error' => [$files['error']],
+                    'size' => [$files['size']],
+                ];
+            }
+
+            $heroImage = null;
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+
+                $file = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i],
+                ];
+
+                $result = ImageHandler::processUpload($file, "users/{$userId}/other");
+
+                if ($result) {
+                    Database::query(
+                        "INSERT INTO other_item_images (other_item_id, filename) VALUES (?, ?)",
+                        [$itemId, $result['filename']]
+                    );
+
+                    // First image becomes the hero image
+                    if ($heroImage === null) {
+                        $heroImage = $result['filename'];
+                    }
+                }
+            }
+
+            // Update item with hero image
+            if ($heroImage) {
+                Database::query(
+                    "UPDATE other_items SET hero_image = ? WHERE id = ?",
+                    [$heroImage, $itemId]
+                );
+            }
+        }
 
         // Handle attributes based on category
         $this->saveAttributes($itemId, $category, $_POST);

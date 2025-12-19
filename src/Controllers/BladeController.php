@@ -64,27 +64,67 @@ class BladeController
         }
 
         $userId = $_SESSION['user_id'];
-        $heroImage = null;
 
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/blades";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                set_old($_POST);
-                redirect('/blades/new');
-            }
-        }
-
+        // Create blade first
         Database::query(
-            "INSERT INTO blades (user_id, name, brand, description, notes, hero_image) VALUES (?, ?, ?, ?, ?, ?)",
-            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null, $heroImage]
+            "INSERT INTO blades (user_id, name, brand, description, notes) VALUES (?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null]
         );
 
         $bladeId = Database::lastInsertId();
+
+        // Handle multiple image uploads
+        $files = $_FILES['images'] ?? $_FILES['hero_image'] ?? null;
+        if ($files && !empty($files['name'][0] ?? $files['name'])) {
+            // Normalize to array format for multiple files
+            if (!is_array($files['name'])) {
+                $files = [
+                    'name' => [$files['name']],
+                    'type' => [$files['type']],
+                    'tmp_name' => [$files['tmp_name']],
+                    'error' => [$files['error']],
+                    'size' => [$files['size']],
+                ];
+            }
+
+            $heroImage = null;
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+
+                $file = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i],
+                ];
+
+                $result = ImageHandler::processUpload($file, "users/{$userId}/blades");
+
+                if ($result) {
+                    Database::query(
+                        "INSERT INTO blade_images (blade_id, filename) VALUES (?, ?)",
+                        [$bladeId, $result['filename']]
+                    );
+
+                    // First image becomes the hero image
+                    if ($heroImage === null) {
+                        $heroImage = $result['filename'];
+                    }
+                }
+            }
+
+            // Update blade with hero image
+            if ($heroImage) {
+                Database::query(
+                    "UPDATE blades SET hero_image = ? WHERE id = ?",
+                    [$heroImage, $bladeId]
+                );
+            }
+        }
+
         clear_old();
         flash('success', 'Blade added successfully.');
         redirect("/blades/{$bladeId}");

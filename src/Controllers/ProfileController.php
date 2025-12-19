@@ -603,4 +603,296 @@ class ProfileController
         }
         rmdir($dir);
     }
+
+    /**
+     * Import items from CSV
+     */
+    public function importCsv(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile');
+        }
+
+        $userId = $_SESSION['user_id'];
+        $type = $_POST['import_type'] ?? '';
+
+        if (!in_array($type, ['razors', 'blades', 'brushes'])) {
+            flash('error', 'Invalid import type.');
+            redirect('/profile');
+        }
+
+        if (empty($_FILES['csv_file']['tmp_name']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            flash('error', 'Please select a CSV file to upload.');
+            redirect('/profile');
+        }
+
+        $file = $_FILES['csv_file'];
+
+        // Validate file type
+        $mimeType = mime_content_type($file['tmp_name']);
+        if (!in_array($mimeType, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'])) {
+            flash('error', 'Please upload a valid CSV file.');
+            redirect('/profile');
+        }
+
+        // Parse CSV
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            flash('error', 'Could not read the CSV file.');
+            redirect('/profile');
+        }
+
+        // Read header row
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            flash('error', 'CSV file is empty or invalid.');
+            redirect('/profile');
+        }
+
+        // Normalize header names (lowercase, trim)
+        $header = array_map(function($h) {
+            return strtolower(trim($h));
+        }, $header);
+
+        // Remove BOM if present
+        if (isset($header[0])) {
+            $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
+        }
+
+        // Import based on type
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Create associative array from row
+            $data = [];
+            foreach ($header as $index => $column) {
+                $data[$column] = isset($row[$index]) ? trim($row[$index]) : '';
+            }
+
+            try {
+                $result = match ($type) {
+                    'razors' => $this->importRazorRow($userId, $data),
+                    'blades' => $this->importBladeRow($userId, $data),
+                    'brushes' => $this->importBrushRow($userId, $data),
+                };
+
+                if ($result) {
+                    $imported++;
+                } else {
+                    $skipped++;
+                }
+            } catch (Exception $e) {
+                $errors[] = $e->getMessage();
+                $skipped++;
+            }
+        }
+
+        fclose($handle);
+
+        $message = "Imported {$imported} {$type}.";
+        if ($skipped > 0) {
+            $message .= " Skipped {$skipped} rows (duplicates or invalid).";
+        }
+
+        flash('success', $message);
+        redirect('/profile');
+    }
+
+    /**
+     * Import a single razor row
+     */
+    private function importRazorRow(int $userId, array $data): bool
+    {
+        // Get name from 'name' column, or combine 'brand' and 'name'
+        $name = '';
+        if (!empty($data['name'])) {
+            // If brand exists and name doesn't already contain it, prepend brand
+            if (!empty($data['brand']) && stripos($data['name'], $data['brand']) === false) {
+                $name = trim($data['brand'] . ' ' . $data['name']);
+            } else {
+                $name = trim($data['name']);
+            }
+        } elseif (!empty($data['brand'])) {
+            $name = trim($data['brand']);
+        }
+
+        if (empty($name)) {
+            return false;
+        }
+
+        // Check for duplicate
+        $existing = Database::fetch(
+            "SELECT id FROM razors WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+            [$userId, $name]
+        );
+
+        if ($existing) {
+            return false; // Skip duplicates
+        }
+
+        $description = $data['description'] ?? null;
+        $notes = $data['notes'] ?? null;
+
+        // Handle use_count if present (store in notes if not empty)
+        $useCount = intval($data['usecount'] ?? $data['use_count'] ?? 0);
+        if ($useCount > 0 && empty($notes)) {
+            $notes = "Use count: {$useCount}";
+        } elseif ($useCount > 0 && !empty($notes)) {
+            $notes .= "\nUse count: {$useCount}";
+        }
+
+        Database::query(
+            "INSERT INTO razors (user_id, name, description, notes) VALUES (?, ?, ?, ?)",
+            [$userId, $name, $description ?: null, $notes ?: null]
+        );
+
+        return true;
+    }
+
+    /**
+     * Import a single blade row
+     */
+    private function importBladeRow(int $userId, array $data): bool
+    {
+        $name = trim($data['name'] ?? '');
+        $brand = trim($data['brand'] ?? '');
+
+        if (empty($name)) {
+            return false;
+        }
+
+        // Check for duplicate
+        $existing = Database::fetch(
+            "SELECT id FROM blades WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+            [$userId, $name]
+        );
+
+        if ($existing) {
+            return false; // Skip duplicates
+        }
+
+        $description = $data['description'] ?? null;
+        $notes = $data['notes'] ?? null;
+
+        Database::query(
+            "INSERT INTO blades (user_id, name, brand, description, notes) VALUES (?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null]
+        );
+
+        return true;
+    }
+
+    /**
+     * Import a single brush row
+     */
+    private function importBrushRow(int $userId, array $data): bool
+    {
+        // Get name from 'name' column, or combine 'brand' and 'name'
+        $name = '';
+        if (!empty($data['name'])) {
+            if (!empty($data['brand']) && stripos($data['name'], $data['brand']) === false) {
+                $name = trim($data['brand'] . ' ' . $data['name']);
+            } else {
+                $name = trim($data['name']);
+            }
+        } elseif (!empty($data['brand'])) {
+            $name = trim($data['brand']);
+        }
+
+        if (empty($name)) {
+            return false;
+        }
+
+        // Check for duplicate
+        $existing = Database::fetch(
+            "SELECT id FROM brushes WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+            [$userId, $name]
+        );
+
+        if ($existing) {
+            return false; // Skip duplicates
+        }
+
+        $brand = $data['brand'] ?? null;
+        $description = $data['description'] ?? null;
+        $notes = $data['notes'] ?? null;
+        $bristleType = $data['bristle_type'] ?? $data['bristletype'] ?? null;
+        $knotSize = $data['knot_size'] ?? $data['knotsize'] ?? null;
+        $loft = $data['loft'] ?? null;
+        $handleMaterial = $data['handle_material'] ?? $data['handlematerial'] ?? null;
+
+        // Handle use_count if present
+        $useCount = intval($data['usecount'] ?? $data['use_count'] ?? 0);
+
+        Database::query(
+            "INSERT INTO brushes (user_id, name, brand, bristle_type, knot_size, loft, handle_material, description, notes, use_count)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $bristleType ?: null, $knotSize ?: null, $loft ?: null, $handleMaterial ?: null, $description ?: null, $notes ?: null, $useCount]
+        );
+
+        return true;
+    }
+
+    /**
+     * Download sample CSV template
+     */
+    public function downloadTemplate(): void
+    {
+        $type = $_GET['type'] ?? 'razors';
+
+        $templates = [
+            'razors' => [
+                'header' => ['Brand', 'Name', 'UseCount', 'Notes'],
+                'sample' => [
+                    ['Gillette', 'Slim 1963 L1', '26', 'Great mild razor'],
+                    ['Merkur', '34C', '6', 'HD handle'],
+                ],
+            ],
+            'blades' => [
+                'header' => ['Brand', 'Name', 'Notes'],
+                'sample' => [
+                    ['Feather', 'Hi-Stainless', 'Very sharp'],
+                    ['Astra', 'Superior Platinum', 'Good value'],
+                ],
+            ],
+            'brushes' => [
+                'header' => ['Brand', 'Name', 'BristleType', 'KnotSize', 'Loft', 'HandleMaterial', 'UseCount', 'Notes'],
+                'sample' => [
+                    ['Simpson', 'Chubby 2', 'Badger - Best', '27mm', '54mm', 'Resin', '15', 'Excellent brush'],
+                    ['Yaqi', 'Tuxedo', 'Synthetic', '24mm', '50mm', 'Resin', '30', 'Great for travel'],
+                ],
+            ],
+        ];
+
+        if (!isset($templates[$type])) {
+            $type = 'razors';
+        }
+
+        $template = $templates[$type];
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $type . '_template.csv"');
+
+        $output = fopen('php://output', 'w');
+
+        // Write header
+        fputcsv($output, $template['header']);
+
+        // Write sample rows
+        foreach ($template['sample'] as $row) {
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit;
+    }
 }

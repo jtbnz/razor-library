@@ -16,12 +16,12 @@
             </div>
 
             <div class="form-group">
-                <label for="hero_image" class="form-label">Hero Image</label>
-                <input type="file" id="hero_image" name="hero_image" class="form-input"
+                <label for="images" class="form-label">Images</label>
+                <input type="file" id="images" name="images[]" class="form-input"
                        accept="image/jpeg,image/png,image/gif,image/webp"
-                       data-preview="#image-preview">
-                <span class="form-hint">Max 10MB. JPEG, PNG, GIF, or WebP.</span>
-                <img id="image-preview" src="" alt="" style="display: none; max-width: 300px; margin-top: 1rem; border-radius: 8px;">
+                       multiple>
+                <span class="form-hint">Max 10MB per image. JPEG, PNG, GIF, or WebP. You can select multiple images. The first image will be set as the tile/hero image.</span>
+                <div id="image-previews" class="image-preview-grid mt-2"></div>
             </div>
 
             <div class="form-group">

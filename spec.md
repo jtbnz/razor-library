@@ -346,9 +346,36 @@ A single section for miscellaneous grooming items, organized by subcategories vi
 - Download full collection backup (see 9.3)
 
 ### 9.2 Admin Panel (Admin Only)
-- List all users
-- Create new user (username, email, password)
+
+#### User Management
+- List all users with collection counts
+- Create new user (username, email, password, admin flag)
+- Edit user (update username, email, password, admin status)
 - Delete user (soft delete, preserves data)
+
+#### Backup & Restore
+- **Create Backup**: Generate a ZIP file containing:
+  - Complete SQLite database
+  - All uploaded images (organized by user/category)
+  - Excludes the backups folder itself
+- **View Backups**: List all available backups with date/time and file size
+- **Download Backup**: Download any backup file for off-site storage
+- **Delete Backup**: Remove old backups to free disk space
+- **Restore from Backup**: Restore database and images from a previous backup
+  - Current database is saved as `.pre_restore` before overwriting
+  - Images are merged (existing preserved, missing restored)
+
+#### Database Reset
+- Complete database reset with confirmation
+- Requires typing "RESET DATABASE" exactly to confirm
+- Option to keep uploaded images while resetting database
+- Shows last backup date/time as warning
+- After reset:
+  - All users and data are deleted
+  - User is logged out
+  - Redirected to create new admin account
+
+#### Future Admin Features (Not Yet Implemented)
 - Upload/change splash image
 
 ### 9.3 Password Reset
@@ -490,13 +517,26 @@ Each item generates a markdown file with all its data:
 
 ### 10.1 Upload Processing
 - Accept: JPEG, PNG, WebP, GIF
-- Max upload size: 10MB
+- Max upload size: 10MB per image
 - Auto-resize: Max 1200px on longest edge
 - Generate thumbnail: 300px for tile views
 - Storage format: UUID filename (e.g., `a1b2c3d4-5678-90ab-cdef.jpg`)
 - Preserve original format
 
-### 10.2 Storage Structure
+### 10.2 Multiple Image Upload
+- Upload multiple images at once (on create or detail page)
+- First uploaded image automatically becomes the hero/tile image
+- All images are stored in the item's image gallery
+- Users can set any image as the hero image from the detail page
+
+### 10.3 Hero Image Selection
+- Each item has one hero image displayed in tile/card views
+- Hero image is shown prominently at the top of detail pages
+- Click the star icon on any gallery image to set it as hero
+- "Tile" badge indicates the current hero image
+- Changing hero image does not delete other gallery images
+
+### 10.4 Storage Structure
 ```
 /uploads/
   /users/{user_id}/
@@ -512,7 +552,7 @@ Each item generates a markdown file with all its data:
     splash.jpg
 ```
 
-### 10.3 Placeholder
+### 10.5 Placeholder
 - Default placeholder image for items without hero image
 - SVG or simple generated placeholder
 
@@ -870,7 +910,13 @@ These features are not included in the initial build but noted for potential fut
 | `/other/new` | Auth | Add new other item |
 | `/profile` | Auth | User settings |
 | `/profile/export` | Auth | Download collection backup (ZIP) |
-| `/admin` | Admin | User management |
+| `/admin` | Admin | Administration dashboard |
+| `/admin/users/new` | Admin | Create new user form |
+| `/admin/users/{id}/edit` | Admin | Edit user form |
+| `/admin/backup` | Admin | Create database backup |
+| `/admin/backup/{filename}/download` | Admin | Download backup file |
+| `/admin/restore` | Admin | Restore from backup |
+| `/admin/reset-database` | Admin | Reset database |
 | `/share/{token}` | Public | Shared collection view |
 | `/share/{token}/razors` | Public | Shared razors |
 | `/share/{token}/razors/{id}` | Public | Shared razor detail |
