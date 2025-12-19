@@ -4,7 +4,7 @@
     <h1>Add Brush</h1>
 </div>
 
-<form action="/brushes" method="POST" enctype="multipart/form-data" class="form-container">
+<form action="<?= url('/brushes') ?>" method="POST" enctype="multipart/form-data" class="form-container">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -78,7 +78,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Add Brush</button>
-        <a href="/brushes" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/brushes') ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

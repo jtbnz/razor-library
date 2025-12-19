@@ -14,7 +14,7 @@ ob_start();
         <div class="alert alert-error"><?= get_flash('error') ?></div>
         <?php endif; ?>
 
-        <form action="/reset-password/<?= e($token) ?>" method="POST">
+        <form action="<?= url('/reset-password/' . e($token)) ?>" method="POST">
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -32,7 +32,7 @@ ob_start();
         </form>
 
         <div class="auth-links">
-            <a href="/login">Back to login</a>
+            <a href="<?= url('/login') ?>">Back to login</a>
         </div>
     </div>
 </div>

@@ -58,7 +58,7 @@
     </div>
 </div>
 
-<div class="mt-4"><a href="/share/<?= e($token) ?>/blades" class="btn btn-outline">&larr; Back to Blades</a></div>
+<div class="mt-4"><a href="<?= url('/share/' . e($token) . '/blades') ?>" class="btn btn-outline">&larr; Back to Blades</a></div>
 
 <?php
 $content = ob_get_clean();

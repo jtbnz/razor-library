@@ -4,7 +4,7 @@
     <h1>Edit Blade</h1>
 </div>
 
-<form action="/blades/<?= $blade['id'] ?>" method="POST" enctype="multipart/form-data" class="form-container">
+<form action="<?= url('/blades/' . $blade['id']) ?>" method="POST" enctype="multipart/form-data" class="form-container">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -27,11 +27,11 @@
         <textarea id="notes" name="notes" class="form-input" rows="3"><?= e($blade['notes'] ?? '') ?></textarea>
     </div>
 
-    <p class="text-muted mb-3">To manage images, go to the <a href="/blades/<?= $blade['id'] ?>">blade detail page</a> where you can upload multiple images and select the tile image.</p>
+    <p class="text-muted mb-3">To manage images, go to the <a href="<?= url('/blades/' . $blade['id']) ?>">blade detail page</a> where you can upload multiple images and select the tile image.</p>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Update Blade</button>
-        <a href="/blades/<?= $blade['id'] ?>" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/blades/' . $blade['id']) ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

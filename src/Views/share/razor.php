@@ -72,7 +72,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/share/<?= e($token) ?>/razors" class="btn btn-outline">&larr; Back to Razors</a>
+    <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="btn btn-outline">&larr; Back to Razors</a>
 </div>
 
 <?php

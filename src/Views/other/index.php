@@ -3,29 +3,29 @@
 <div class="page-header">
     <h1>Other Items</h1>
     <div class="page-header-actions">
-        <a href="/other/new" class="btn btn-primary">Add Item</a>
+        <a href="<?= url('/other/new') ?>" class="btn btn-primary">Add Item</a>
     </div>
 </div>
 
 <!-- Category Tabs -->
 <div class="tabs mb-3">
-    <a href="/other?category=all&sort=<?= $sort ?>" class="tab <?= $currentCategory === 'all' ? 'active' : '' ?>">All</a>
+    <a href="<?= url('/other?category=all&sort=' . $sort) ?>" class="tab <?= $currentCategory === 'all' ? 'active' : '' ?>">All</a>
     <?php foreach ($categories as $key => $label): ?>
-    <a href="/other?category=<?= $key ?>&sort=<?= $sort ?>" class="tab <?= $currentCategory === $key ? 'active' : '' ?>"><?= $label ?></a>
+    <a href="<?= url('/other?category=' . $key . '&sort=' . $sort) ?>" class="tab <?= $currentCategory === $key ? 'active' : '' ?>"><?= $label ?></a>
     <?php endforeach; ?>
 </div>
 
 <?php if (!empty($items)): ?>
 <div class="sort-controls mb-3">
     <span class="text-muted">Sort by:</span>
-    <a href="/other?category=<?= $currentCategory ?>&sort=name" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
-    <a href="/other?category=<?= $currentCategory ?>&sort=date" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
-    <a href="/other?category=<?= $currentCategory ?>&sort=last_used" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
+    <a href="<?= url('/other?category=' . $currentCategory . '&sort=name') ?>" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
+    <a href="<?= url('/other?category=' . $currentCategory . '&sort=date') ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
+    <a href="<?= url('/other?category=' . $currentCategory . '&sort=last_used') ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
 </div>
 
 <div class="tile-grid">
     <?php foreach ($items as $item): ?>
-    <a href="/other/<?= $item['id'] ?>" class="tile-card">
+    <a href="<?= url('/other/' . $item['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($item['hero_image']): ?>
             <img src="<?= upload_url("users/{$_SESSION['user_id']}/other/" . str_replace('.', '_thumb.', $item['hero_image'])) ?>"
@@ -56,7 +56,7 @@
     </svg>
     <h3>No Items Yet</h3>
     <p>Start tracking your shaving accessories.</p>
-    <a href="/other/new" class="btn btn-primary">Add Your First Item</a>
+    <a href="<?= url('/other/new') ?>" class="btn btn-primary">Add Your First Item</a>
 </div>
 <?php endif; ?>
 

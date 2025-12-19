@@ -4,7 +4,7 @@
     <h1>Add Item</h1>
 </div>
 
-<form action="/other" method="POST" enctype="multipart/form-data" class="form-container" id="other-form">
+<form action="<?= url('/other') ?>" method="POST" enctype="multipart/form-data" class="form-container" id="other-form">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -151,7 +151,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Add Item</button>
-        <a href="/other" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/other') ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

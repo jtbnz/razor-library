@@ -12,7 +12,7 @@
                 <h3>Account Settings</h3>
             </div>
             <div class="card-body">
-                <form action="/profile" method="POST">
+                <form action="<?= url('/profile') ?>" method="POST">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
@@ -98,7 +98,7 @@
                     </div>
                 </div>
 
-                <form action="/profile/regenerate-share-token" method="POST" class="mt-3">
+                <form action="<?= url('/profile/regenerate-share-token') ?>" method="POST" class="mt-3">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-outline" data-confirm="Are you sure? Your current share link will stop working.">Regenerate Link</button>
                 </form>
@@ -113,7 +113,7 @@
             <div class="card-body">
                 <p class="text-muted mb-3">Download your entire collection as a ZIP file containing markdown files for each item and all your images.</p>
 
-                <a href="/profile/export" class="btn btn-primary">Download Collection</a>
+                <a href="<?= url('/profile/export') ?>" class="btn btn-primary">Download Collection</a>
             </div>
         </div>
 
@@ -125,7 +125,7 @@
             <div class="card-body">
                 <p class="text-muted mb-3">Bulk import items from a CSV file. Duplicates will be skipped automatically.</p>
 
-                <form action="/profile/import-csv" method="POST" enctype="multipart/form-data">
+                <form action="<?= url('/profile/import-csv') ?>" method="POST" enctype="multipart/form-data">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
@@ -155,9 +155,9 @@
                 <div class="mb-3">
                     <strong>Download Templates:</strong>
                     <div class="d-flex gap-2 mt-2">
-                        <a href="/profile/csv-template?type=razors" class="btn btn-sm btn-outline">Razors Template</a>
-                        <a href="/profile/csv-template?type=blades" class="btn btn-sm btn-outline">Blades Template</a>
-                        <a href="/profile/csv-template?type=brushes" class="btn btn-sm btn-outline">Brushes Template</a>
+                        <a href="<?= url('/profile/csv-template?type=razors') ?>" class="btn btn-sm btn-outline">Razors Template</a>
+                        <a href="<?= url('/profile/csv-template?type=blades') ?>" class="btn btn-sm btn-outline">Blades Template</a>
+                        <a href="<?= url('/profile/csv-template?type=brushes') ?>" class="btn btn-sm btn-outline">Brushes Template</a>
                     </div>
                 </div>
 

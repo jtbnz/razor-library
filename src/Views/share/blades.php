@@ -7,7 +7,7 @@
 <?php if (!empty($blades)): ?>
 <div class="tile-grid">
     <?php foreach ($blades as $blade): ?>
-    <a href="/share/<?= e($token) ?>/blades/<?= $blade['id'] ?>" class="tile-card">
+    <a href="<?= url('/share/' . e($token) . '/blades/' . $blade['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($blade['hero_image']): ?>
             <img src="<?= upload_url("users/{$user['id']}/blades/" . str_replace('.', '_thumb.', $blade['hero_image'])) ?>"
@@ -41,7 +41,7 @@
 <?php endif; ?>
 
 <div class="mt-4">
-    <a href="/share/<?= e($token) ?>" class="btn btn-outline">&larr; Back to Collection</a>
+    <a href="<?= url('/share/' . e($token)) ?>" class="btn btn-outline">&larr; Back to Collection</a>
 </div>
 
 <?php

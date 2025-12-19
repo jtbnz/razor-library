@@ -8,7 +8,7 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h4 mb-0">User Management</h2>
-        <a href="/admin/users/new" class="btn btn-primary btn-sm">Add User</a>
+        <a href="<?= url('/admin/users/new') ?>" class="btn btn-primary btn-sm">Add User</a>
     </div>
     <div class="card-body">
         <?php if (!empty($users)): ?>
@@ -50,9 +50,9 @@
                         <td><?= format_date($user['created_at']) ?></td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a href="/admin/users/<?= $user['id'] ?>/edit" class="btn btn-sm btn-outline">Edit</a>
+                                <a href="<?= url('/admin/users/' . $user['id'] . '/edit') ?>" class="btn btn-sm btn-outline">Edit</a>
                                 <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                <form action="/admin/users/<?= $user['id'] ?>/delete" method="POST" style="display: inline;">
+                                <form action="<?= url('/admin/users/' . $user['id'] . '/delete') ?>" method="POST" style="display: inline;">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-sm btn-danger" data-confirm="Are you sure you want to delete this user? Their data will be preserved but they won't be able to login.">Delete</button>
                                 </form>
@@ -68,7 +68,7 @@
         <div class="empty-state">
             <h3>No Users</h3>
             <p>No users have been created yet.</p>
-            <a href="/admin/users/new" class="btn btn-primary">Add User</a>
+            <a href="<?= url('/admin/users/new') ?>" class="btn btn-primary">Add User</a>
         </div>
         <?php endif; ?>
     </div>
@@ -89,7 +89,7 @@
                 <?php else: ?>
                 <p class="mb-2 text-muted">No backups yet.</p>
                 <?php endif; ?>
-                <form action="/admin/backup" method="POST">
+                <form action="<?= url('/admin/backup') ?>" method="POST">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Create Backup Now</button>
                 </form>
@@ -98,7 +98,7 @@
                 <h3 class="h5">Restore from Backup</h3>
                 <p class="text-muted">Restore the database and images from a previous backup.</p>
                 <?php if (!empty($backups)): ?>
-                <form action="/admin/restore" method="POST">
+                <form action="<?= url('/admin/restore') ?>" method="POST">
                     <?= csrf_field() ?>
                     <div class="form-group mb-2">
                         <select name="backup_file" class="form-select" required>
@@ -137,8 +137,8 @@
                         <td><?= number_format($backup['size'] / 1024 / 1024, 2) ?> MB</td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a href="/admin/backup/<?= urlencode($backup['filename']) ?>/download" class="btn btn-sm btn-outline">Download</a>
-                                <form action="/admin/backup/<?= urlencode($backup['filename']) ?>/delete" method="POST" style="display: inline;">
+                                <a href="<?= url('/admin/backup/' . urlencode($backup['filename']) . '/download') ?>" class="btn btn-sm btn-outline">Download</a>
+                                <form action="<?= url('/admin/backup/' . urlencode($backup['filename']) . '/delete') ?>" method="POST" style="display: inline;">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-sm btn-danger" data-confirm="Are you sure you want to delete this backup?">Delete</button>
                                 </form>
@@ -172,7 +172,7 @@
             <strong>Warning:</strong> No backups exist. We strongly recommend creating a backup before resetting the database.
         </div>
         <?php endif; ?>
-        <form action="/admin/reset-database" method="POST" id="reset-form">
+        <form action="<?= url('/admin/reset-database') ?>" method="POST" id="reset-form">
             <?= csrf_field() ?>
             <div class="form-group mb-2">
                 <label for="confirm_text" class="form-label">Type <strong>RESET DATABASE</strong> to confirm:</label>

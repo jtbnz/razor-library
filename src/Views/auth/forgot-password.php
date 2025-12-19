@@ -20,7 +20,7 @@ ob_start();
 
         <p class="text-muted mb-3">Enter your email address and we'll send you a link to reset your password.</p>
 
-        <form action="/forgot-password" method="POST">
+        <form action="<?= url('/forgot-password') ?>" method="POST">
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -32,7 +32,7 @@ ob_start();
         </form>
 
         <div class="auth-links">
-            <a href="/login">Back to login</a>
+            <a href="<?= url('/login') ?>">Back to login</a>
         </div>
     </div>
 </div>

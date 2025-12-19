@@ -3,8 +3,8 @@
 <div class="page-header">
     <h1><?= e($item['name']) ?></h1>
     <div class="page-header-actions">
-        <a href="/other/<?= $item['id'] ?>/edit" class="btn btn-outline">Edit</a>
-        <form action="/other/<?= $item['id'] ?>/delete" method="POST" style="display: inline;">
+        <a href="<?= url('/other/' . $item['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
+        <form action="<?= url('/other/' . $item['id'] . '/delete') ?>" method="POST" style="display: inline;">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this item?">Delete</button>
         </form>
@@ -87,7 +87,7 @@
                         <span class="url-desc"><?= e($url['description']) ?></span>
                         <?php endif; ?>
                     </div>
-                    <form action="/other/<?= $item['id'] ?>/urls/<?= $url['id'] ?>/delete" method="POST">
+                    <form action="<?= url('/other/' . $item['id'] . '/urls/' . $url['id'] . '/delete') ?>" method="POST">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-sm btn-outline" data-confirm="Delete this URL?">Delete</button>
                     </form>
@@ -98,7 +98,7 @@
             <p class="text-muted">No URLs added yet.</p>
             <?php endif; ?>
 
-            <form action="/other/<?= $item['id'] ?>/urls" method="POST" class="mt-3">
+            <form action="<?= url('/other/' . $item['id'] . '/urls') ?>" method="POST" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <input type="url" name="url" placeholder="https://example.com" class="form-input" style="flex: 2; min-width: 200px;" required>
@@ -114,7 +114,7 @@
         <div class="detail-section">
             <h3>Usage</h3>
             <div class="d-flex align-items-center gap-3 mb-3">
-                <form action="/other/<?= $item['id'] ?>/use" method="POST">
+                <form action="<?= url('/other/' . $item['id'] . '/use') ?>" method="POST">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Record Use</button>
                 </form>
@@ -139,12 +139,12 @@
                     <?php endif; ?>
                     <div class="image-actions">
                         <?php if ($image['filename'] !== $item['hero_image']): ?>
-                        <form action="/other/<?= $item['id'] ?>/images/<?= $image['id'] ?>/hero" method="POST" style="display:inline;">
+                        <form action="<?= url('/other/' . $item['id'] . '/images/' . $image['id'] . '/hero') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="hero-btn" title="Set as tile image">&#9733;</button>
                         </form>
                         <?php endif; ?>
-                        <form action="/other/<?= $item['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST" style="display:inline;">
+                        <form action="<?= url('/other/' . $item['id'] . '/images/' . $image['id'] . '/delete') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
                         </form>
@@ -156,7 +156,7 @@
             <p class="text-muted">No images uploaded yet.</p>
             <?php endif; ?>
 
-            <form action="/other/<?= $item['id'] ?>/images" method="POST" enctype="multipart/form-data" class="mt-3">
+            <form action="<?= url('/other/' . $item['id'] . '/images') ?>" method="POST" enctype="multipart/form-data" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap align-items-center">
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
@@ -169,7 +169,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/other" class="btn btn-outline">&larr; Back to Other Items</a>
+    <a href="<?= url('/other') ?>" class="btn btn-outline">&larr; Back to Other Items</a>
 </div>
 
 <?php

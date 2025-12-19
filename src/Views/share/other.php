@@ -3,16 +3,16 @@
 <div class="page-header"><h1>Other Items</h1></div>
 
 <div class="tabs mb-3">
-    <a href="/share/<?= e($token) ?>/other?category=all" class="tab <?= $currentCategory === 'all' ? 'active' : '' ?>">All</a>
+    <a href="<?= url('/share/' . e($token) . '/other?category=all') ?>" class="tab <?= $currentCategory === 'all' ? 'active' : '' ?>">All</a>
     <?php foreach ($categories as $key => $label): ?>
-    <a href="/share/<?= e($token) ?>/other?category=<?= $key ?>" class="tab <?= $currentCategory === $key ? 'active' : '' ?>"><?= $label ?></a>
+    <a href="<?= url('/share/' . e($token) . '/other?category=' . $key) ?>" class="tab <?= $currentCategory === $key ? 'active' : '' ?>"><?= $label ?></a>
     <?php endforeach; ?>
 </div>
 
 <?php if (!empty($items)): ?>
 <div class="tile-grid">
     <?php foreach ($items as $item): ?>
-    <a href="/share/<?= e($token) ?>/other/<?= $item['id'] ?>" class="tile-card">
+    <a href="<?= url('/share/' . e($token) . '/other/' . $item['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($item['hero_image']): ?>
             <img src="<?= upload_url("users/{$user['id']}/other/" . str_replace('.', '_thumb.', $item['hero_image'])) ?>" alt="<?= e($item['name']) ?>" loading="lazy">
@@ -32,6 +32,6 @@
 <div class="empty-state"><h3>No Items</h3><p>This collection doesn't have any items in this category yet.</p></div>
 <?php endif; ?>
 
-<div class="mt-4"><a href="/share/<?= e($token) ?>" class="btn btn-outline">&larr; Back to Collection</a></div>
+<div class="mt-4"><a href="<?= url('/share/' . e($token)) ?>" class="btn btn-outline">&larr; Back to Collection</a></div>
 
 <?php $content = ob_get_clean(); require BASE_PATH . '/src/Views/layouts/share.php'; ?>

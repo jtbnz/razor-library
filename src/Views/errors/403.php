@@ -18,7 +18,7 @@
             </div>
             <div class="auth-box-body text-center">
                 <p class="text-muted mb-3">You don't have permission to access this page.</p>
-                <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+                <a href="<?= url('/dashboard') ?>" class="btn btn-primary">Go to Dashboard</a>
             </div>
         </div>
     </div>

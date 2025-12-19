@@ -3,22 +3,22 @@
 <div class="page-header">
     <h1>My Brushes</h1>
     <div class="page-header-actions">
-        <a href="/brushes/new" class="btn btn-primary">Add Brush</a>
+        <a href="<?= url('/brushes/new') ?>" class="btn btn-primary">Add Brush</a>
     </div>
 </div>
 
 <?php if (!empty($brushes)): ?>
 <div class="sort-controls mb-3">
     <span class="text-muted">Sort by:</span>
-    <a href="/brushes?sort=name" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
-    <a href="/brushes?sort=date" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
-    <a href="/brushes?sort=usage" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
-    <a href="/brushes?sort=last_used" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
+    <a href="<?= url('/brushes?sort=name') ?>" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
+    <a href="<?= url('/brushes?sort=date') ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
+    <a href="<?= url('/brushes?sort=usage') ?>" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
+    <a href="<?= url('/brushes?sort=last_used') ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
 </div>
 
 <div class="tile-grid">
     <?php foreach ($brushes as $brush): ?>
-    <a href="/brushes/<?= $brush['id'] ?>" class="tile-card">
+    <a href="<?= url('/brushes/' . $brush['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($brush['hero_image']): ?>
             <img src="<?= upload_url("users/{$_SESSION['user_id']}/brushes/" . str_replace('.', '_thumb.', $brush['hero_image'])) ?>"
@@ -51,7 +51,7 @@
     </svg>
     <h3>No Brushes Yet</h3>
     <p>Start building your brush collection.</p>
-    <a href="/brushes/new" class="btn btn-primary">Add Your First Brush</a>
+    <a href="<?= url('/brushes/new') ?>" class="btn btn-primary">Add Your First Brush</a>
 </div>
 <?php endif; ?>
 

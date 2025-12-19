@@ -3,8 +3,8 @@
 <div class="page-header">
     <h1><?= e($blade['name']) ?></h1>
     <div class="page-header-actions">
-        <a href="/blades/<?= $blade['id'] ?>/edit" class="btn btn-outline">Edit</a>
-        <form action="/blades/<?= $blade['id'] ?>/delete" method="POST" style="display: inline;">
+        <a href="<?= url('/blades/' . $blade['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
+        <form action="<?= url('/blades/' . $blade['id'] . '/delete') ?>" method="POST" style="display: inline;">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this blade?">Delete</button>
         </form>
@@ -64,7 +64,7 @@
                         <span class="url-desc"><?= e($url['description']) ?></span>
                         <?php endif; ?>
                     </div>
-                    <form action="/blades/<?= $blade['id'] ?>/urls/<?= $url['id'] ?>/delete" method="POST">
+                    <form action="<?= url('/blades/' . $blade['id'] . '/urls/' . $url['id'] . '/delete') ?>" method="POST">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-sm btn-outline" data-confirm="Delete this URL?">Delete</button>
                     </form>
@@ -75,7 +75,7 @@
             <p class="text-muted">No URLs added yet.</p>
             <?php endif; ?>
 
-            <form action="/blades/<?= $blade['id'] ?>/urls" method="POST" class="mt-3">
+            <form action="<?= url('/blades/' . $blade['id'] . '/urls') ?>" method="POST" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <input type="url" name="url" placeholder="https://example.com" class="form-input" style="flex: 2; min-width: 200px;" required>
@@ -123,12 +123,12 @@
                     <?php endif; ?>
                     <div class="image-actions">
                         <?php if ($image['filename'] !== $blade['hero_image']): ?>
-                        <form action="/blades/<?= $blade['id'] ?>/images/<?= $image['id'] ?>/hero" method="POST" style="display:inline;">
+                        <form action="<?= url('/blades/' . $blade['id'] . '/images/' . $image['id'] . '/hero') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="hero-btn" title="Set as tile image">&#9733;</button>
                         </form>
                         <?php endif; ?>
-                        <form action="/blades/<?= $blade['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST" style="display:inline;">
+                        <form action="<?= url('/blades/' . $blade['id'] . '/images/' . $image['id'] . '/delete') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
                         </form>
@@ -140,7 +140,7 @@
             <p class="text-muted">No images uploaded yet.</p>
             <?php endif; ?>
 
-            <form action="/blades/<?= $blade['id'] ?>/images" method="POST" enctype="multipart/form-data" class="mt-3">
+            <form action="<?= url('/blades/' . $blade['id'] . '/images') ?>" method="POST" enctype="multipart/form-data" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap align-items-center">
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
@@ -153,7 +153,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/blades" class="btn btn-outline">&larr; Back to Blades</a>
+    <a href="<?= url('/blades') ?>" class="btn btn-outline">&larr; Back to Blades</a>
 </div>
 
 <?php

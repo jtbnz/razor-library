@@ -3,22 +3,22 @@
 <div class="page-header">
     <h1>My Blades</h1>
     <div class="page-header-actions">
-        <a href="/blades/new" class="btn btn-primary">Add Blade</a>
+        <a href="<?= url('/blades/new') ?>" class="btn btn-primary">Add Blade</a>
     </div>
 </div>
 
 <?php if (!empty($blades)): ?>
 <div class="sort-controls mb-3">
     <span class="text-muted">Sort by:</span>
-    <a href="/blades?sort=name" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
-    <a href="/blades?sort=date" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
-    <a href="/blades?sort=usage" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
-    <a href="/blades?sort=last_used" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
+    <a href="<?= url('/blades?sort=name') ?>" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
+    <a href="<?= url('/blades?sort=date') ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
+    <a href="<?= url('/blades?sort=usage') ?>" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
+    <a href="<?= url('/blades?sort=last_used') ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
 </div>
 
 <div class="tile-grid">
     <?php foreach ($blades as $blade): ?>
-    <a href="/blades/<?= $blade['id'] ?>" class="tile-card">
+    <a href="<?= url('/blades/' . $blade['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($blade['hero_image']): ?>
             <img src="<?= upload_url("users/{$_SESSION['user_id']}/blades/" . str_replace('.', '_thumb.', $blade['hero_image'])) ?>"
@@ -51,7 +51,7 @@
     </svg>
     <h3>No Blades Yet</h3>
     <p>Start building your blade collection.</p>
-    <a href="/blades/new" class="btn btn-primary">Add Your First Blade</a>
+    <a href="<?= url('/blades/new') ?>" class="btn btn-primary">Add Your First Blade</a>
 </div>
 <?php endif; ?>
 

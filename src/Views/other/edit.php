@@ -4,7 +4,7 @@
     <h1>Edit Item</h1>
 </div>
 
-<form action="/other/<?= $item['id'] ?>" method="POST" enctype="multipart/form-data" class="form-container" id="other-form">
+<form action="<?= url('/other/' . $item['id']) ?>" method="POST" enctype="multipart/form-data" class="form-container" id="other-form">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -143,11 +143,11 @@
         <textarea id="notes" name="notes" class="form-input" rows="3"><?= e($item['notes'] ?? '') ?></textarea>
     </div>
 
-    <p class="text-muted mb-3">To manage images, go to the <a href="/other/<?= $item['id'] ?>">item detail page</a> where you can upload multiple images and select the tile image.</p>
+    <p class="text-muted mb-3">To manage images, go to the <a href="<?= url('/other/' . $item['id']) ?>">item detail page</a> where you can upload multiple images and select the tile image.</p>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Update Item</button>
-        <a href="/other/<?= $item['id'] ?>" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/other/' . $item['id']) ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

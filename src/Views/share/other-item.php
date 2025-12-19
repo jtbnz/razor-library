@@ -40,6 +40,6 @@
     </div>
 </div>
 
-<div class="mt-4"><a href="/share/<?= e($token) ?>/other" class="btn btn-outline">&larr; Back to Other Items</a></div>
+<div class="mt-4"><a href="<?= url('/share/' . e($token) . '/other') ?>" class="btn btn-outline">&larr; Back to Other Items</a></div>
 
 <?php $content = ob_get_clean(); require BASE_PATH . '/src/Views/layouts/share.php'; ?>

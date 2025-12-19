@@ -18,7 +18,7 @@ ob_start();
         <div class="alert alert-error"><?= get_flash('error') ?></div>
         <?php endif; ?>
 
-        <form action="/login" method="POST">
+        <form action="<?= url('/login') ?>" method="POST">
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -36,7 +36,7 @@ ob_start();
         </form>
 
         <div class="auth-links">
-            <a href="/forgot-password">Forgot your password?</a>
+            <a href="<?= url('/forgot-password') ?>">Forgot your password?</a>
         </div>
     </div>
 </div>

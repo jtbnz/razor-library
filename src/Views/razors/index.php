@@ -3,7 +3,7 @@
 <div class="page-header">
     <h1>Razors</h1>
     <div class="page-header-actions">
-        <a href="/razors/new" class="btn btn-primary">Add Razor</a>
+        <a href="<?= url('/razors/new') ?>" class="btn btn-primary">Add Razor</a>
     </div>
 </div>
 
@@ -26,12 +26,12 @@
     </svg>
     <h3>No razors yet</h3>
     <p>Start building your collection by adding your first razor.</p>
-    <a href="/razors/new" class="btn btn-primary">Add Razor</a>
+    <a href="<?= url('/razors/new') ?>" class="btn btn-primary">Add Razor</a>
 </div>
 <?php else: ?>
 <div class="tile-grid">
     <?php foreach ($razors as $razor): ?>
-    <a href="/razors/<?= $razor['id'] ?>" class="card">
+    <a href="<?= url('/razors/' . $razor['id']) ?>" class="card">
         <div class="card-image">
             <?php if ($razor['hero_image']): ?>
             <img src="<?= upload_url("users/{$_SESSION['user_id']}/razors/{$razor['hero_image']}") ?>"

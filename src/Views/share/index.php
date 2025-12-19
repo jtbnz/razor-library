@@ -8,19 +8,19 @@
 <!-- Stats -->
 <div class="share-stats mb-4">
     <div class="stats-grid stats-grid-4">
-        <a href="/share/<?= e($token) ?>/razors" class="stat-item stat-item-link">
+        <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="stat-item stat-item-link">
             <span class="stat-value"><?= $stats['razors'] ?></span>
             <span class="stat-label">Razors</span>
         </a>
-        <a href="/share/<?= e($token) ?>/blades" class="stat-item stat-item-link">
+        <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="stat-item stat-item-link">
             <span class="stat-value"><?= $stats['blades'] ?></span>
             <span class="stat-label">Blades</span>
         </a>
-        <a href="/share/<?= e($token) ?>/brushes" class="stat-item stat-item-link">
+        <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="stat-item stat-item-link">
             <span class="stat-value"><?= $stats['brushes'] ?></span>
             <span class="stat-label">Brushes</span>
         </a>
-        <a href="/share/<?= e($token) ?>/other" class="stat-item stat-item-link">
+        <a href="<?= url('/share/' . e($token) . '/other') ?>" class="stat-item stat-item-link">
             <span class="stat-value"><?= $stats['other'] ?></span>
             <span class="stat-label">Other</span>
         </a>
@@ -31,11 +31,11 @@
 <section class="mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h2>Razors</h2>
-        <a href="/share/<?= e($token) ?>/razors" class="btn btn-sm btn-outline">View All</a>
+        <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="btn btn-sm btn-outline">View All</a>
     </div>
     <div class="tile-grid">
         <?php foreach ($recentRazors as $razor): ?>
-        <a href="/share/<?= e($token) ?>/razors/<?= $razor['id'] ?>" class="tile-card">
+        <a href="<?= url('/share/' . e($token) . '/razors/' . $razor['id']) ?>" class="tile-card">
             <div class="tile-image">
                 <?php if ($razor['hero_image']): ?>
                 <img src="<?= upload_url("users/{$user['id']}/razors/" . str_replace('.', '_thumb.', $razor['hero_image'])) ?>"
@@ -62,11 +62,11 @@
 <section class="mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h2>Blades</h2>
-        <a href="/share/<?= e($token) ?>/blades" class="btn btn-sm btn-outline">View All</a>
+        <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="btn btn-sm btn-outline">View All</a>
     </div>
     <div class="tile-grid">
         <?php foreach ($recentBlades as $blade): ?>
-        <a href="/share/<?= e($token) ?>/blades/<?= $blade['id'] ?>" class="tile-card">
+        <a href="<?= url('/share/' . e($token) . '/blades/' . $blade['id']) ?>" class="tile-card">
             <div class="tile-image">
                 <?php if ($blade['hero_image']): ?>
                 <img src="<?= upload_url("users/{$user['id']}/blades/" . str_replace('.', '_thumb.', $blade['hero_image'])) ?>"

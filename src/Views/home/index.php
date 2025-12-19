@@ -16,7 +16,7 @@
             <h1 class="landing-logo">Razor Library</h1>
             <p class="landing-tagline">Catalog and track your wet shaving collection. Razors, blades, brushes, and more.</p>
             <div class="landing-actions">
-                <a href="/login" class="btn btn-primary btn-lg">Sign In</a>
+                <a href="<?= url('/login') ?>" class="btn btn-primary btn-lg">Sign In</a>
             </div>
         </div>
     </div>

@@ -4,7 +4,7 @@
     <h1>Edit Razor</h1>
 </div>
 
-<form action="/razors/<?= $razor['id'] ?>" method="POST" enctype="multipart/form-data" class="form-container">
+<form action="<?= url('/razors/' . $razor['id']) ?>" method="POST" enctype="multipart/form-data" class="form-container">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -22,11 +22,11 @@
         <textarea id="notes" name="notes" class="form-input" rows="3"><?= e($razor['notes'] ?? '') ?></textarea>
     </div>
 
-    <p class="text-muted mb-3">To manage images, go to the <a href="/razors/<?= $razor['id'] ?>">razor detail page</a> where you can upload multiple images and select the tile image.</p>
+    <p class="text-muted mb-3">To manage images, go to the <a href="<?= url('/razors/' . $razor['id']) ?>">razor detail page</a> where you can upload multiple images and select the tile image.</p>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Update Razor</button>
-        <a href="/razors/<?= $razor['id'] ?>" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/razors/' . $razor['id']) ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

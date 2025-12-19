@@ -3,8 +3,8 @@
 <div class="page-header">
     <h1><?= e($brush['name']) ?></h1>
     <div class="page-header-actions">
-        <a href="/brushes/<?= $brush['id'] ?>/edit" class="btn btn-outline">Edit</a>
-        <form action="/brushes/<?= $brush['id'] ?>/delete" method="POST" style="display: inline;">
+        <a href="<?= url('/brushes/' . $brush['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
+        <form action="<?= url('/brushes/' . $brush['id'] . '/delete') ?>" method="POST" style="display: inline;">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this brush?">Delete</button>
         </form>
@@ -93,7 +93,7 @@
                         <span class="url-desc"><?= e($url['description']) ?></span>
                         <?php endif; ?>
                     </div>
-                    <form action="/brushes/<?= $brush['id'] ?>/urls/<?= $url['id'] ?>/delete" method="POST">
+                    <form action="<?= url('/brushes/' . $brush['id'] . '/urls/' . $url['id'] . '/delete') ?>" method="POST">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-sm btn-outline" data-confirm="Delete this URL?">Delete</button>
                     </form>
@@ -104,7 +104,7 @@
             <p class="text-muted">No URLs added yet.</p>
             <?php endif; ?>
 
-            <form action="/brushes/<?= $brush['id'] ?>/urls" method="POST" class="mt-3">
+            <form action="<?= url('/brushes/' . $brush['id'] . '/urls') ?>" method="POST" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <input type="url" name="url" placeholder="https://example.com" class="form-input" style="flex: 2; min-width: 200px;" required>
@@ -121,7 +121,7 @@
             <h3>Usage</h3>
             <div class="d-flex align-items-center gap-3 mb-3">
                 <span class="text-lg"><strong><?= $brush['use_count'] ?></strong> total uses</span>
-                <form action="/brushes/<?= $brush['id'] ?>/use" method="POST">
+                <form action="<?= url('/brushes/' . $brush['id'] . '/use') ?>" method="POST">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Record Use</button>
                 </form>
@@ -146,12 +146,12 @@
                     <?php endif; ?>
                     <div class="image-actions">
                         <?php if ($image['filename'] !== $brush['hero_image']): ?>
-                        <form action="/brushes/<?= $brush['id'] ?>/images/<?= $image['id'] ?>/hero" method="POST" style="display:inline;">
+                        <form action="<?= url('/brushes/' . $brush['id'] . '/images/' . $image['id'] . '/hero') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="hero-btn" title="Set as tile image">&#9733;</button>
                         </form>
                         <?php endif; ?>
-                        <form action="/brushes/<?= $brush['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST" style="display:inline;">
+                        <form action="<?= url('/brushes/' . $brush['id'] . '/images/' . $image['id'] . '/delete') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
                         </form>
@@ -163,7 +163,7 @@
             <p class="text-muted">No images uploaded yet.</p>
             <?php endif; ?>
 
-            <form action="/brushes/<?= $brush['id'] ?>/images" method="POST" enctype="multipart/form-data" class="mt-3">
+            <form action="<?= url('/brushes/' . $brush['id'] . '/images') ?>" method="POST" enctype="multipart/form-data" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap align-items-center">
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
@@ -176,7 +176,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/brushes" class="btn btn-outline">&larr; Back to Brushes</a>
+    <a href="<?= url('/brushes') ?>" class="btn btn-outline">&larr; Back to Brushes</a>
 </div>
 
 <?php

@@ -4,7 +4,7 @@
     <h1>Edit User</h1>
 </div>
 
-<form action="/admin/users/<?= $user['id'] ?>" method="POST" class="form-container">
+<form action="<?= url('/admin/users/' . $user['id']) ?>" method="POST" class="form-container">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -34,7 +34,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Update User</button>
-        <a href="/admin" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/admin') ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

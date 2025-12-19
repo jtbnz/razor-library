@@ -5,7 +5,7 @@
 <?php if (!empty($brushes)): ?>
 <div class="tile-grid">
     <?php foreach ($brushes as $brush): ?>
-    <a href="/share/<?= e($token) ?>/brushes/<?= $brush['id'] ?>" class="tile-card">
+    <a href="<?= url('/share/' . e($token) . '/brushes/' . $brush['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($brush['hero_image']): ?>
             <img src="<?= upload_url("users/{$user['id']}/brushes/" . str_replace('.', '_thumb.', $brush['hero_image'])) ?>" alt="<?= e($brush['name']) ?>" loading="lazy">
@@ -25,6 +25,6 @@
 <div class="empty-state"><h3>No Brushes</h3><p>This collection doesn't have any brushes yet.</p></div>
 <?php endif; ?>
 
-<div class="mt-4"><a href="/share/<?= e($token) ?>" class="btn btn-outline">&larr; Back to Collection</a></div>
+<div class="mt-4"><a href="<?= url('/share/' . e($token)) ?>" class="btn btn-outline">&larr; Back to Collection</a></div>
 
 <?php $content = ob_get_clean(); require BASE_PATH . '/src/Views/layouts/share.php'; ?>

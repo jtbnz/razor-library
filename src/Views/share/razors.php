@@ -7,7 +7,7 @@
 <?php if (!empty($razors)): ?>
 <div class="tile-grid">
     <?php foreach ($razors as $razor): ?>
-    <a href="/share/<?= e($token) ?>/razors/<?= $razor['id'] ?>" class="tile-card">
+    <a href="<?= url('/share/' . e($token) . '/razors/' . $razor['id']) ?>" class="tile-card">
         <div class="tile-image">
             <?php if ($razor['hero_image']): ?>
             <img src="<?= upload_url("users/{$user['id']}/razors/" . str_replace('.', '_thumb.', $razor['hero_image'])) ?>"
@@ -35,7 +35,7 @@
 <?php endif; ?>
 
 <div class="mt-4">
-    <a href="/share/<?= e($token) ?>" class="btn btn-outline">&larr; Back to Collection</a>
+    <a href="<?= url('/share/' . e($token)) ?>" class="btn btn-outline">&larr; Back to Collection</a>
 </div>
 
 <?php

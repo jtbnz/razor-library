@@ -4,7 +4,7 @@
     <h1>Add Blade</h1>
 </div>
 
-<form action="/blades" method="POST" enctype="multipart/form-data" class="form-container">
+<form action="<?= url('/blades') ?>" method="POST" enctype="multipart/form-data" class="form-container">
     <?= csrf_field() ?>
 
     <div class="form-group">
@@ -35,7 +35,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Add Blade</button>
-        <a href="/blades" class="btn btn-outline">Cancel</a>
+        <a href="<?= url('/blades') ?>" class="btn btn-outline">Cancel</a>
     </div>
 </form>
 

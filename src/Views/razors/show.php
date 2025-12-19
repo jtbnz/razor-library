@@ -3,8 +3,8 @@
 <div class="page-header">
     <h1><?= e($razor['name']) ?></h1>
     <div class="page-header-actions">
-        <a href="/razors/<?= $razor['id'] ?>/edit" class="btn btn-outline">Edit</a>
-        <form action="/razors/<?= $razor['id'] ?>/delete" method="POST" style="display: inline;">
+        <a href="<?= url('/razors/' . $razor['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
+        <form action="<?= url('/razors/' . $razor['id'] . '/delete') ?>" method="POST" style="display: inline;">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this razor?">Delete</button>
         </form>
@@ -56,7 +56,7 @@
                         <span class="url-desc"><?= e($url['description']) ?></span>
                         <?php endif; ?>
                     </div>
-                    <form action="/razors/<?= $razor['id'] ?>/urls/<?= $url['id'] ?>/delete" method="POST">
+                    <form action="<?= url('/razors/' . $razor['id'] . '/urls/' . $url['id'] . '/delete') ?>" method="POST">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-sm btn-outline" data-confirm="Delete this URL?">Delete</button>
                     </form>
@@ -67,7 +67,7 @@
             <p class="text-muted">No URLs added yet.</p>
             <?php endif; ?>
 
-            <form action="/razors/<?= $razor['id'] ?>/urls" method="POST" class="mt-3">
+            <form action="<?= url('/razors/' . $razor['id'] . '/urls') ?>" method="POST" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <input type="url" name="url" placeholder="https://example.com" class="form-input" style="flex: 2; min-width: 200px;" required>
@@ -94,7 +94,7 @@
                 <?php foreach ($bladeUsage as $usage): ?>
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2" style="padding: 0.5rem; background: var(--color-bg); border-radius: var(--radius-md);">
                     <span><?= e($usage['blade_name']) ?></span>
-                    <form action="/razors/<?= $razor['id'] ?>/usage" method="POST" class="usage-counter" id="blade-usage-form-<?= $usage['blade_id'] ?>">
+                    <form action="<?= url('/razors/' . $razor['id'] . '/usage') ?>" method="POST" class="usage-counter" id="blade-usage-form-<?= $usage['blade_id'] ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="blade_id" value="<?= $usage['blade_id'] ?>">
                         <input type="hidden" name="count" value="<?= $usage['count'] ?>">
@@ -108,7 +108,7 @@
             <?php endif; ?>
 
             <?php if (!empty($allBlades)): ?>
-            <form action="/razors/<?= $razor['id'] ?>/usage" method="POST">
+            <form action="<?= url('/razors/' . $razor['id'] . '/usage') ?>" method="POST">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <select name="blade_id" class="form-select" style="flex: 1; min-width: 150px;" required>
@@ -123,7 +123,7 @@
             </form>
             <?php else: ?>
             <p class="text-muted">Add some blades first to track usage.</p>
-            <a href="/blades/new" class="btn btn-sm btn-outline">Add Blade</a>
+            <a href="<?= url('/blades/new') ?>" class="btn btn-sm btn-outline">Add Blade</a>
             <?php endif; ?>
         </div>
 
@@ -142,12 +142,12 @@
                     <?php endif; ?>
                     <div class="image-actions">
                         <?php if ($image['filename'] !== $razor['hero_image']): ?>
-                        <form action="/razors/<?= $razor['id'] ?>/images/<?= $image['id'] ?>/hero" method="POST" style="display:inline;">
+                        <form action="<?= url('/razors/' . $razor['id'] . '/images/' . $image['id'] . '/hero') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="hero-btn" title="Set as tile image">&#9733;</button>
                         </form>
                         <?php endif; ?>
-                        <form action="/razors/<?= $razor['id'] ?>/images/<?= $image['id'] ?>/delete" method="POST" style="display:inline;">
+                        <form action="<?= url('/razors/' . $razor['id'] . '/images/' . $image['id'] . '/delete') ?>" method="POST" style="display:inline;">
                             <?= csrf_field() ?>
                             <button type="submit" class="delete-btn" data-confirm="Delete this image?">&times;</button>
                         </form>
@@ -159,7 +159,7 @@
             <p class="text-muted">No images uploaded yet.</p>
             <?php endif; ?>
 
-            <form action="/razors/<?= $razor['id'] ?>/images" method="POST" enctype="multipart/form-data" class="mt-3">
+            <form action="<?= url('/razors/' . $razor['id'] . '/images') ?>" method="POST" enctype="multipart/form-data" class="mt-3">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap align-items-center">
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
@@ -172,7 +172,7 @@
 </div>
 
 <div class="mt-4">
-    <a href="/razors" class="btn btn-outline">&larr; Back to Razors</a>
+    <a href="<?= url('/razors') ?>" class="btn btn-outline">&larr; Back to Razors</a>
 </div>
 
 <?php

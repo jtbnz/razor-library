@@ -14,15 +14,15 @@
     <header class="header">
         <div class="header-content">
             <div class="header-left">
-                <a href="/share/<?= e($token) ?>" class="header-logo">
+                <a href="<?= url('/share/' . e($token)) ?>" class="header-logo">
                     <span class="logo-text"><?= e($user['username']) ?>'s Collection</span>
                 </a>
             </div>
             <nav class="header-nav">
-                <a href="/share/<?= e($token) ?>/razors" class="nav-link">Razors</a>
-                <a href="/share/<?= e($token) ?>/blades" class="nav-link">Blades</a>
-                <a href="/share/<?= e($token) ?>/brushes" class="nav-link">Brushes</a>
-                <a href="/share/<?= e($token) ?>/other" class="nav-link">Other</a>
+                <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="nav-link">Razors</a>
+                <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="nav-link">Blades</a>
+                <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="nav-link">Brushes</a>
+                <a href="<?= url('/share/' . e($token) . '/other') ?>" class="nav-link">Other</a>
             </nav>
             <button class="menu-toggle" aria-label="Toggle menu">
                 <span></span>
@@ -34,10 +34,10 @@
 
     <!-- Mobile Navigation -->
     <nav class="mobile-nav">
-        <a href="/share/<?= e($token) ?>/razors" class="mobile-nav-link">Razors</a>
-        <a href="/share/<?= e($token) ?>/blades" class="mobile-nav-link">Blades</a>
-        <a href="/share/<?= e($token) ?>/brushes" class="mobile-nav-link">Brushes</a>
-        <a href="/share/<?= e($token) ?>/other" class="mobile-nav-link">Other</a>
+        <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="mobile-nav-link">Razors</a>
+        <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="mobile-nav-link">Blades</a>
+        <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="mobile-nav-link">Brushes</a>
+        <a href="<?= url('/share/' . e($token) . '/other') ?>" class="mobile-nav-link">Other</a>
     </nav>
 
     <!-- Main Content -->
@@ -49,7 +49,7 @@
 
     <!-- Footer -->
     <footer class="share-footer">
-        <p>Shared with <a href="/">Razor Library</a></p>
+        <p>Shared with <a href="<?= url('/') ?>">Razor Library</a></p>
     </footer>
 
     <script src="<?= asset('js/app.js') ?>"></script>

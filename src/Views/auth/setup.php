@@ -14,7 +14,7 @@ ob_start();
         <div class="alert alert-error"><?= get_flash('error') ?></div>
         <?php endif; ?>
 
-        <form action="/setup" method="POST">
+        <form action="<?= url('/setup') ?>" method="POST">
             <?= csrf_field() ?>
 
             <div class="form-group">

@@ -6,7 +6,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="/razors" method="POST" enctype="multipart/form-data">
+        <form action="<?= url('/razors') ?>" method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -37,7 +37,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save Razor</button>
-                <a href="/razors" class="btn btn-outline">Cancel</a>
+                <a href="<?= url('/razors') ?>" class="btn btn-outline">Cancel</a>
             </div>
         </form>
     </div>
