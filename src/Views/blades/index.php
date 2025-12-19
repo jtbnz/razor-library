@@ -13,6 +13,7 @@
     <a href="/blades?sort=name" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
     <a href="/blades?sort=date" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
     <a href="/blades?sort=usage" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
+    <a href="/blades?sort=last_used" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
 </div>
 
 <div class="tile-grid">

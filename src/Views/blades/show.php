@@ -91,6 +91,9 @@
         <div class="detail-section">
             <h3>Usage Statistics</h3>
             <p class="text-lg mb-3"><strong><?= $totalUsage ?></strong> total uses</p>
+            <?php if ($blade['last_used_at']): ?>
+            <p class="text-muted mb-3">Last used: <?= date('M j, Y', strtotime($blade['last_used_at'])) ?></p>
+            <?php endif; ?>
             <?php if (!empty($usage)): ?>
             <div class="usage-breakdown">
                 <?php foreach ($usage as $u): ?>

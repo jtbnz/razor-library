@@ -25,6 +25,7 @@ class OtherController
 
         $orderBy = match ($sort) {
             'date' => 'created_at DESC',
+            'last_used' => 'last_used_at DESC NULLS LAST',
             default => 'name ASC',
         };
 
@@ -571,6 +572,37 @@ class OtherController
 
         flash('success', 'URL deleted successfully.');
         redirect("/other/{$itemId}");
+    }
+
+    /**
+     * Record usage for an item
+     */
+    public function recordUsage(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/other/{$id}");
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $item = Database::fetch(
+            "SELECT * FROM other_items WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$item) {
+            flash('error', 'Item not found.');
+            redirect('/other');
+        }
+
+        Database::query(
+            "UPDATE other_items SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$id]
+        );
+
+        flash('success', 'Usage recorded.');
+        redirect("/other/{$id}");
     }
 
     /**

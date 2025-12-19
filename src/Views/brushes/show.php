@@ -126,6 +126,9 @@
                     <button type="submit" class="btn btn-primary">Record Use</button>
                 </form>
             </div>
+            <?php if ($brush['last_used_at']): ?>
+            <p class="text-muted">Last used: <?= date('M j, Y', strtotime($brush['last_used_at'])) ?></p>
+            <?php endif; ?>
         </div>
 
         <!-- Images -->

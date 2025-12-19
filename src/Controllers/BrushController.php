@@ -16,6 +16,7 @@ class BrushController
         $orderBy = match ($sort) {
             'date' => 'created_at DESC',
             'usage' => 'use_count DESC',
+            'last_used' => 'last_used_at DESC NULLS LAST',
             default => 'name ASC',
         };
 
@@ -291,7 +292,7 @@ class BrushController
         }
 
         Database::query(
-            "UPDATE brushes SET use_count = use_count + 1 WHERE id = ?",
+            "UPDATE brushes SET use_count = use_count + 1, last_used_at = CURRENT_TIMESTAMP WHERE id = ?",
             [$id]
         );
 

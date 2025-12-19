@@ -20,6 +20,7 @@
     <span class="text-muted">Sort by:</span>
     <a href="/other?category=<?= $currentCategory ?>&sort=name" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
     <a href="/other?category=<?= $currentCategory ?>&sort=date" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
+    <a href="/other?category=<?= $currentCategory ?>&sort=last_used" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
 </div>
 
 <div class="tile-grid">

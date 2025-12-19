@@ -110,6 +110,20 @@
     </div>
 
     <div>
+        <!-- Usage Tracking -->
+        <div class="detail-section">
+            <h3>Usage</h3>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <form action="/other/<?= $item['id'] ?>/use" method="POST">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-primary">Record Use</button>
+                </form>
+            </div>
+            <?php if ($item['last_used_at']): ?>
+            <p class="text-muted">Last used: <?= date('M j, Y', strtotime($item['last_used_at'])) ?></p>
+            <?php endif; ?>
+        </div>
+
         <!-- Images -->
         <div class="detail-section">
             <h3>Images</h3>

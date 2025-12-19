@@ -172,6 +172,7 @@ $router->post('/other/{id}/images/{imageId}/hero', 'OtherController@setHeroImage
 $router->post('/other/{id}/images/{imageId}/delete', 'OtherController@deleteImage', ['auth']);
 $router->post('/other/{id}/urls', 'OtherController@addUrl', ['auth']);
 $router->post('/other/{id}/urls/{urlId}/delete', 'OtherController@deleteUrl', ['auth']);
+$router->post('/other/{id}/use', 'OtherController@recordUsage', ['auth']);
 
 // Profile
 $router->get('/profile', 'ProfileController@index', ['auth']);

@@ -79,6 +79,13 @@
     </div>
 
     <div>
+        <!-- Usage Info -->
+        <?php if ($razor['last_used_at']): ?>
+        <div class="detail-section">
+            <p class="text-muted">Last used: <?= date('M j, Y', strtotime($razor['last_used_at'])) ?></p>
+        </div>
+        <?php endif; ?>
+
         <!-- Blade Usage -->
         <div class="detail-section">
             <h3>Blade Usage</h3>

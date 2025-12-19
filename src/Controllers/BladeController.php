@@ -16,6 +16,7 @@ class BladeController
         $orderBy = match ($sort) {
             'date' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(bu.count), 0) FROM blade_usage bu WHERE bu.blade_id = blades.id) DESC',
+            'last_used' => 'last_used_at DESC NULLS LAST',
             default => 'name ASC',
         };
 

@@ -15,6 +15,7 @@
         <option value="date_desc" <?= $sort === 'date_desc' ? 'selected' : '' ?>>Newest First</option>
         <option value="date_asc" <?= $sort === 'date_asc' ? 'selected' : '' ?>>Oldest First</option>
         <option value="usage" <?= $sort === 'usage' ? 'selected' : '' ?>>Most Used</option>
+        <option value="last_used" <?= $sort === 'last_used' ? 'selected' : '' ?>>Last Used</option>
     </select>
 </div>
 

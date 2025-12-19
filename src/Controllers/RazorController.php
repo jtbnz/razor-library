@@ -24,6 +24,7 @@ class RazorController
             'date_asc' => 'created_at ASC',
             'date_desc' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(count), 0) FROM blade_usage WHERE razor_id = razors.id) DESC',
+            'last_used' => 'last_used_at DESC NULLS LAST',
             default => 'name ASC',
         };
 
@@ -557,6 +558,9 @@ class RazorController
                     "UPDATE blade_usage SET count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                     [$count, $existing['id']]
                 );
+                // Update last_used_at for both razor and blade
+                Database::query("UPDATE razors SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$razor['id']]);
+                Database::query("UPDATE blades SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$bladeId]);
             } else {
                 Database::query("DELETE FROM blade_usage WHERE id = ?", [$existing['id']]);
             }
@@ -565,6 +569,9 @@ class RazorController
                 "INSERT INTO blade_usage (razor_id, blade_id, count) VALUES (?, ?, ?)",
                 [$razor['id'], $bladeId, $count]
             );
+            // Update last_used_at for both razor and blade
+            Database::query("UPDATE razors SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$razor['id']]);
+            Database::query("UPDATE blades SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$bladeId]);
         }
 
         if (is_ajax()) {
