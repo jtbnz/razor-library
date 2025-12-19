@@ -664,9 +664,12 @@ class ProfileController
         // Import based on type
         $imported = 0;
         $skipped = 0;
-        $errors = [];
+        $skipReasons = [];
+        $rowNum = 1; // Header is row 1
 
         while (($row = fgetcsv($handle)) !== false) {
+            $rowNum++;
+
             // Skip empty rows
             if (empty(array_filter($row))) {
                 continue;
@@ -685,13 +688,14 @@ class ProfileController
                     'brushes' => $this->importBrushRow($userId, $data),
                 };
 
-                if ($result) {
+                if ($result === true) {
                     $imported++;
                 } else {
                     $skipped++;
+                    $skipReasons[] = $result; // Now returns reason string
                 }
             } catch (Exception $e) {
-                $errors[] = $e->getMessage();
+                $skipReasons[] = "Row {$rowNum}: " . $e->getMessage();
                 $skipped++;
             }
         }
@@ -700,17 +704,26 @@ class ProfileController
 
         $message = "Imported {$imported} {$type}.";
         if ($skipped > 0) {
-            $message .= " Skipped {$skipped} rows (duplicates or invalid).";
+            $message .= " Skipped {$skipped} rows.";
+            if (!empty($skipReasons)) {
+                // Show first 5 reasons
+                $reasons = array_slice($skipReasons, 0, 5);
+                $message .= " Reasons: " . implode('; ', $reasons);
+                if (count($skipReasons) > 5) {
+                    $message .= " (and " . (count($skipReasons) - 5) . " more)";
+                }
+            }
         }
 
-        flash('success', $message);
+        flash($imported > 0 ? 'success' : 'warning', $message);
         redirect('/profile');
     }
 
     /**
      * Import a single razor row
+     * @return true|string True on success, or error message string on failure
      */
-    private function importRazorRow(int $userId, array $data): bool
+    private function importRazorRow(int $userId, array $data): true|string
     {
         // Get name from 'name' column, or combine 'brand' and 'name'
         $name = '';
@@ -726,7 +739,7 @@ class ProfileController
         }
 
         if (empty($name)) {
-            return false;
+            return "Missing name";
         }
 
         // Check for duplicate
@@ -736,7 +749,7 @@ class ProfileController
         );
 
         if ($existing) {
-            return false; // Skip duplicates
+            return "Duplicate: '{$name}'";
         }
 
         $description = $data['description'] ?? null;
@@ -760,14 +773,15 @@ class ProfileController
 
     /**
      * Import a single blade row
+     * @return true|string True on success, or error message string on failure
      */
-    private function importBladeRow(int $userId, array $data): bool
+    private function importBladeRow(int $userId, array $data): true|string
     {
         $name = trim($data['name'] ?? '');
         $brand = trim($data['brand'] ?? '');
 
         if (empty($name)) {
-            return false;
+            return "Missing name (brand='{$brand}')";
         }
 
         // Check for duplicate
@@ -777,7 +791,7 @@ class ProfileController
         );
 
         if ($existing) {
-            return false; // Skip duplicates
+            return "Duplicate: '{$name}'";
         }
 
         $description = $data['description'] ?? null;
@@ -793,8 +807,9 @@ class ProfileController
 
     /**
      * Import a single brush row
+     * @return true|string True on success, or error message string on failure
      */
-    private function importBrushRow(int $userId, array $data): bool
+    private function importBrushRow(int $userId, array $data): true|string
     {
         // Get name from 'name' column, or combine 'brand' and 'name'
         $name = '';
@@ -809,7 +824,7 @@ class ProfileController
         }
 
         if (empty($name)) {
-            return false;
+            return "Missing name";
         }
 
         // Check for duplicate
@@ -819,7 +834,7 @@ class ProfileController
         );
 
         if ($existing) {
-            return false; // Skip duplicates
+            return "Duplicate: '{$name}'";
         }
 
         $brand = $data['brand'] ?? null;
