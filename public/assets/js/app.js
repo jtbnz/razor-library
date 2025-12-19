@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize sort controls
     initSortControls();
 
-    // Initialize image lightbox
+    // Initialize image lightbox again
     initLightbox();
 });
 
