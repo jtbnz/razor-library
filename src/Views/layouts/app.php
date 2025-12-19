@@ -108,6 +108,10 @@
                     <div class="alert alert-error"><?= get_flash('error') ?></div>
                     <?php endif; ?>
 
+                    <?php if (has_flash('warning')): ?>
+                    <div class="alert alert-warning"><?= get_flash('warning') ?></div>
+                    <?php endif; ?>
+
                     <?= $content ?? '' ?>
                 </div>
             </main>

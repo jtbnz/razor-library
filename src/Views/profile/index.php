@@ -125,7 +125,7 @@
             <div class="card-body">
                 <p class="text-muted mb-3">Bulk import items from a CSV file. Duplicates will be skipped automatically.</p>
 
-                <form action="<?= url('/profile/import-csv') ?>" method="POST" enctype="multipart/form-data">
+                <form action="<?= url('/profile/import-csv') ?>" method="POST" enctype="multipart/form-data" id="import-form">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
@@ -197,6 +197,25 @@ function copyShareLink() {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = originalText, 2000);
 }
+
+// Debug CSV import form
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('import-form');
+    if (form) {
+        console.log('[CSV Import] Form found');
+        form.addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('csv_file');
+            const typeSelect = document.getElementById('import_type');
+            console.log('[CSV Import] Form submitting...');
+            console.log('[CSV Import] File selected:', fileInput.files.length > 0 ? fileInput.files[0].name : 'none');
+            console.log('[CSV Import] Import type:', typeSelect.value);
+            console.log('[CSV Import] Form action:', form.action);
+            // Let the form submit normally
+        });
+    } else {
+        console.log('[CSV Import] Form NOT found');
+    }
+});
 </script>
 
 <?php

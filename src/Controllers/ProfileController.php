@@ -609,20 +609,27 @@ class ProfileController
      */
     public function importCsv(): void
     {
+        error_log('[CSV Import] importCsv() called');
+
         if (!verify_csrf()) {
+            error_log('[CSV Import] CSRF verification failed');
             flash('error', 'Invalid request.');
             redirect('/profile');
         }
 
         $userId = $_SESSION['user_id'];
         $type = $_POST['import_type'] ?? '';
+        error_log("[CSV Import] Type: {$type}, User: {$userId}");
 
         if (!in_array($type, ['razors', 'blades', 'brushes'])) {
+            error_log('[CSV Import] Invalid import type');
             flash('error', 'Invalid import type.');
             redirect('/profile');
         }
 
         if (empty($_FILES['csv_file']['tmp_name']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            $errorCode = $_FILES['csv_file']['error'] ?? 'no file';
+            error_log("[CSV Import] File upload error: {$errorCode}");
             flash('error', 'Please select a CSV file to upload.');
             redirect('/profile');
         }
@@ -724,7 +731,9 @@ class ProfileController
             $message .= " (processed {$totalRows} data rows)";
         }
 
-        flash($imported > 0 ? 'success' : 'warning', $message);
+        error_log("[CSV Import] Result: {$message}");
+        $flashType = $imported > 0 ? 'success' : 'error';
+        flash($flashType, $message);
         redirect('/profile');
     }
 
