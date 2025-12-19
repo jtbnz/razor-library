@@ -6,6 +6,9 @@
 # Uploaded files
 /uploads/
 
+# Backups
+/backups/
+
 # Local config
 config.local.php
 

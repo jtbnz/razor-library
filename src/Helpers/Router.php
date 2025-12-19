@@ -34,6 +34,12 @@ class Router
 
     public function dispatch(string $method, string $uri): void
     {
+        // Strip base path from URI for matching
+        $basePath = config('APP_BASE_PATH', '');
+        if ($basePath && str_starts_with($uri, $basePath)) {
+            $uri = substr($uri, strlen($basePath)) ?: '/';
+        }
+
         foreach ($this->routes as $route) {
             if ($route['method'] !== $method) {
                 continue;
@@ -62,10 +68,12 @@ class Router
 
     private function runMiddleware(string $middleware): bool
     {
+        $basePath = config('APP_BASE_PATH', '');
+
         switch ($middleware) {
             case 'auth':
                 if (!isset($_SESSION['user_id'])) {
-                    header('Location: /login');
+                    header('Location: ' . $basePath . '/login');
                     exit;
                 }
                 return true;
@@ -80,7 +88,7 @@ class Router
 
             case 'guest':
                 if (isset($_SESSION['user_id'])) {
-                    header('Location: /dashboard');
+                    header('Location: ' . $basePath . '/dashboard');
                     exit;
                 }
                 return true;

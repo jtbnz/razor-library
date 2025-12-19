@@ -21,10 +21,30 @@ function view(string $name, array $data = []): string
 }
 
 /**
+ * Get the base path for subdirectory installs
+ */
+function base_path(): string
+{
+    return config('APP_BASE_PATH', '');
+}
+
+/**
+ * Generate a URL with base path prefix
+ */
+function url(string $path = ''): string
+{
+    return base_path() . '/' . ltrim($path, '/');
+}
+
+/**
  * Redirect to a URL
  */
 function redirect(string $url): void
 {
+    // Prepend base path if URL starts with /
+    if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+        $url = base_path() . $url;
+    }
     header('Location: ' . $url);
     exit;
 }
@@ -241,7 +261,7 @@ function base_url(string $path = ''): string
  */
 function asset(string $path): string
 {
-    return '/assets/' . ltrim($path, '/');
+    return base_path() . '/assets/' . ltrim($path, '/');
 }
 
 /**
@@ -249,5 +269,5 @@ function asset(string $path): string
  */
 function upload_url(string $path): string
 {
-    return '/uploads/' . ltrim($path, '/');
+    return base_path() . '/uploads/' . ltrim($path, '/');
 }

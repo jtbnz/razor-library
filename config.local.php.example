@@ -1,0 +1,54 @@
+<?php
+/**
+ * Local configuration overrides
+ *
+ * Copy this file to config.local.php and adjust settings for your environment.
+ * This file is gitignored and will not be committed to version control.
+ */
+
+return [
+    // ============================================
+    // Application Settings
+    // ============================================
+
+    // For subdirectory installs, set the base path (no trailing slash)
+    // Examples:
+    //   '/razor-library' for https://example.com/razor-library/
+    //   '' (empty) for https://example.com/ (root install)
+    'APP_BASE_PATH' => '/razor-library',
+
+    // Your full application URL (used for emails and share links)
+    'APP_URL' => 'https://example.com/razor-library',
+
+    // Enable debug mode for troubleshooting (set to false in production!)
+    'APP_DEBUG' => false,
+
+    // ============================================
+    // Database Settings (optional)
+    // ============================================
+
+    // Custom database path (defaults to ./data/razor_library.db)
+    // 'DB_PATH' => __DIR__ . '/data/razor_library.db',
+
+    // ============================================
+    // Upload Settings (optional)
+    // ============================================
+
+    // Custom upload path (defaults to ./uploads)
+    // 'UPLOAD_PATH' => __DIR__ . '/uploads',
+
+    // Maximum upload size in bytes (default: 10MB)
+    // 'UPLOAD_MAX_SIZE' => 10 * 1024 * 1024,
+
+    // ============================================
+    // Email Settings (optional - for password reset)
+    // ============================================
+
+    // 'MAIL_FROM' => 'noreply@example.com',
+    // 'MAIL_FROM_NAME' => 'Razor Library',
+    // 'SMTP_HOST' => 'smtp.example.com',
+    // 'SMTP_PORT' => 587,
+    // 'SMTP_USER' => 'your-smtp-username',
+    // 'SMTP_PASS' => 'your-smtp-password',
+    // 'SMTP_SECURE' => 'tls', // 'tls' or 'ssl'
+];

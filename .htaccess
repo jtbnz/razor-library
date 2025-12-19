@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /razor-library/
+
+    # Skip if already in public directory
+    RewriteCond %{REQUEST_URI} !/public/
+
+    # Rewrite everything to public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

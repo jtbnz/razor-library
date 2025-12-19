@@ -7,7 +7,7 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 - **Multi-item Management**: Track razors, blades, brushes, bowls, soaps, balms, splashes, and fragrances
 - **Photo Galleries**: Upload multiple images per item with automatic resizing and thumbnails
 - **Tile Images**: Set any image as the tile/hero image displayed in collection views
-- **Usage Tracking**: Track blade usage per razor and brush usage counts
+- **Usage Tracking**: Track blade usage per razor, brush usage counts, and "last used" dates for all items
 - **Related URLs**: Link to product pages, reviews, or other resources
 - **Share Collections**: Generate private shareable links for your collection
 - **CSV Import**: Bulk import items from CSV spreadsheets
@@ -24,6 +24,8 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 
 ## Installation
 
+### Local Development
+
 1. **Clone the repository**
    ```bash
    git clone https://github.com/yourusername/razor-library.git
@@ -32,7 +34,7 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 
 2. **Configure the application**
    ```bash
-   cp config.php config.local.php
+   cp config.local.php.example config.local.php
    ```
 
    Edit `config.local.php` and adjust settings as needed:
@@ -59,32 +61,90 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 
 5. **Create your first user**
 
-   Option A: Register through the web interface at `http://localhost:8080/register`
+   Option A: Visit the setup page at `http://localhost:8080/setup` (first-time only)
 
    Option B: Use the command line:
    ```bash
    php scripts/create-user.php "username" "email@example.com" "password" --admin
    ```
 
+### Production Deployment (Subdirectory Install)
+
+For shared hosting where the app runs in a subdirectory (e.g., `https://example.com/razor-library/`):
+
+1. **Upload all files** to your subdirectory (e.g., `/public_html/razor-library/`)
+
+2. **Create `config.local.php`** in the project root:
+   ```php
+   <?php
+   return [
+       'APP_BASE_PATH' => '/razor-library',
+       'APP_URL' => 'https://example.com/razor-library',
+       'APP_DEBUG' => false,
+   ];
+   ```
+
+3. **Update `.htaccess` files** for your subdirectory path:
+
+   Edit `.htaccess` (in project root) and set RewriteBase:
+   ```apache
+   RewriteBase /razor-library/
+   ```
+
+   Edit `public/.htaccess` and set RewriteBase:
+   ```apache
+   RewriteBase /razor-library/public/
+   ```
+
+4. **Create required directories** with write permissions:
+   ```bash
+   mkdir -p data uploads
+   chmod 755 data uploads
+   ```
+
+5. **Verify PHP version** - Requires PHP 8.0 or higher
+
+6. **Visit your site** at `https://example.com/razor-library/` - the setup page will appear on first visit
+
+### Root Domain Deployment
+
+For deployments at the domain root (e.g., `https://example.com/`):
+
+1. **Set your document root** to the `public/` directory
+2. **Create `config.local.php`** in the project root (one level above document root):
+   ```php
+   <?php
+   return [
+       'APP_BASE_PATH' => '',
+       'APP_URL' => 'https://example.com',
+       'APP_DEBUG' => false,
+   ];
+   ```
+3. **Create `data/` and `uploads/`** directories in the project root with write permissions
+
 ## Directory Structure
 
 ```
 razor-library/
+├── .htaccess               # Redirects requests to public/
 ├── config.php              # Default configuration
 ├── config.local.php        # Local overrides (gitignored)
+├── config.local.php.example # Sample local config for reference
 ├── data/                   # SQLite database (gitignored)
 ├── docs/                   # Documentation
 │   ├── user-guide.md      # User documentation
 │   └── admin-guide.md     # Administrator documentation
 ├── migrations/             # Database migrations
 ├── public/                 # Web root
+│   ├── .htaccess          # URL rewriting rules
+│   ├── .user.ini          # PHP settings for upload limits
 │   ├── index.php          # Application entry point
 │   ├── uploads.php        # Serve uploaded images
 │   └── assets/            # CSS, JS, images
 ├── scripts/               # CLI scripts
 ├── src/
 │   ├── Controllers/       # Request handlers
-│   ├── Helpers/           # Database, ImageHandler, etc.
+│   ├── Helpers/           # Database, ImageHandler, Router, etc.
 │   └── Views/             # PHP templates
 └── uploads/               # User uploaded images (gitignored)
 ```
@@ -132,6 +192,8 @@ php scripts/make-admin.php <email>
 
 - **Blade Usage**: On a razor's detail page, select a blade and track how many times you've used it
 - **Brush Usage**: On a brush's detail page, click "Record Use" to increment the usage counter
+- **Other Items**: On any other item's detail page, click "Record Use" to track when it was last used
+- **Last Used Sorting**: All collection views can be sorted by "Last Used" to see recently used items first
 
 ### Sharing Your Collection
 

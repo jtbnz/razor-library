@@ -10,6 +10,7 @@ return [
     // Application
     'APP_NAME' => 'Razor Library',
     'APP_URL' => 'http://localhost',
+    'APP_BASE_PATH' => '', // Set to '/razor-library' for subdirectory installs
     'APP_DEBUG' => false,
 
     // Database
