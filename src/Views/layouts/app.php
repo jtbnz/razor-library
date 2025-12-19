@@ -44,19 +44,28 @@
                 <nav class="sidebar-nav">
                     <a href="<?= url('/razors') ?>" class="<?= strpos($_SERVER['REQUEST_URI'], '/razors') !== false ? 'active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            <!-- Safety razor icon -->
+                            <rect x="8" y="2" width="8" height="5" rx="1" stroke-width="2"/>
+                            <line x1="12" y1="7" x2="12" y2="22" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="9" y1="10" x2="15" y2="10" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         Razors
                     </a>
                     <a href="<?= url('/blades') ?>" class="<?= strpos($_SERVER['REQUEST_URI'], '/blades') !== false ? 'active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5v6m-6-6h6"/>
+                            <!-- DE blade icon -->
+                            <rect x="2" y="8" width="20" height="8" rx="1" stroke-width="2"/>
+                            <line x1="5" y1="12" x2="19" y2="12" stroke-width="1.5"/>
+                            <circle cx="4.5" cy="12" r="1" fill="currentColor"/>
+                            <circle cx="19.5" cy="12" r="1" fill="currentColor"/>
                         </svg>
                         Blades
                     </a>
                     <a href="<?= url('/brushes') ?>" class="<?= strpos($_SERVER['REQUEST_URI'], '/brushes') !== false ? 'active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            <!-- Shaving brush icon -->
+                            <ellipse cx="12" cy="6" rx="5" ry="4" stroke-width="2"/>
+                            <path d="M9 10 L9 14 Q9 16 10 17 L10 21 Q10 22 12 22 Q14 22 14 21 L14 17 Q15 16 15 14 L15 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Brushes
                     </a>
