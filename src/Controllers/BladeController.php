@@ -236,27 +236,9 @@ class BladeController
             redirect("/blades/{$id}/edit");
         }
 
-        $heroImage = $blade['hero_image'];
-
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/blades";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                // Delete old image
-                if ($heroImage) {
-                    ImageHandler::delete($uploadDir, $heroImage);
-                }
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                redirect("/blades/{$id}/edit");
-            }
-        }
-
         Database::query(
-            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $brand ?: null, $description ?: null, $notes ?: null, $heroImage, $id]
+            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$name, $brand ?: null, $description ?: null, $notes ?: null, $id]
         );
 
         flash('success', 'Blade updated successfully.');

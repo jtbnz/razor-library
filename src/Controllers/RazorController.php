@@ -233,26 +233,9 @@ class RazorController
             return;
         }
 
-        // Handle hero image upload
-        $heroImage = $razor['hero_image'];
-        if (!empty($_FILES['hero_image']['name'])) {
-            // Delete old image
-            if ($heroImage) {
-                ImageHandler::delete("users/{$this->userId}/razors/{$heroImage}");
-            }
-
-            $result = ImageHandler::processUpload(
-                $_FILES['hero_image'],
-                "users/{$this->userId}/razors"
-            );
-            if ($result) {
-                $heroImage = $result['filename'];
-            }
-        }
-
         Database::query(
-            "UPDATE razors SET name = ?, description = ?, notes = ?, hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $description ?: null, $notes ?: null, $heroImage, $razor['id']]
+            "UPDATE razors SET name = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$name, $description ?: null, $notes ?: null, $razor['id']]
         );
 
         flash('success', 'Razor updated successfully.');
@@ -328,10 +311,17 @@ class RazorController
         }
 
         $uploaded = 0;
+        $failed = 0;
         $firstImageId = null;
 
         for ($i = 0; $i < count($files['name']); $i++) {
-            if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+            if (empty($files['name'][$i])) {
+                continue;
+            }
+
+            // Check for upload errors
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                $failed++;
                 continue;
             }
 
@@ -364,18 +354,22 @@ class RazorController
                     );
                     $razor['hero_image'] = $result['filename'];
                 }
+            } else {
+                $failed++;
             }
         }
 
         if (is_ajax()) {
-            json_response(['success' => true, 'uploaded' => $uploaded]);
+            json_response(['success' => true, 'uploaded' => $uploaded, 'failed' => $failed]);
             return;
         }
 
-        if ($uploaded > 0) {
+        if ($uploaded > 0 && $failed > 0) {
+            flash('warning', $uploaded . ' image(s) uploaded. ' . $failed . ' failed (check file size < 2MB).');
+        } elseif ($uploaded > 0) {
             flash('success', $uploaded . ' image(s) uploaded.');
         } else {
-            flash('error', 'Failed to upload images.');
+            flash('error', 'Failed to upload images. Files may exceed 2MB limit.');
         }
         redirect('/razors/' . $id);
     }

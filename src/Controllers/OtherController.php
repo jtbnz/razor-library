@@ -283,27 +283,9 @@ class OtherController
             $category = $item['category'];
         }
 
-        $heroImage = $item['hero_image'];
-
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/other";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                // Delete old image
-                if ($heroImage) {
-                    ImageHandler::delete($uploadDir, $heroImage);
-                }
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                redirect("/other/{$id}/edit");
-            }
-        }
-
         Database::query(
-            "UPDATE other_items SET category = ?, name = ?, brand = ?, description = ?, notes = ?, scent_notes = ?, hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null, $heroImage, $id]
+            "UPDATE other_items SET category = ?, name = ?, brand = ?, description = ?, notes = ?, scent_notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$category, $name, $brand ?: null, $description ?: null, $notes ?: null, $scentNotes ?: null, $id]
         );
 
         // Update attributes

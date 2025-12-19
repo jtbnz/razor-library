@@ -228,27 +228,9 @@ class BrushController
             redirect("/brushes/{$id}/edit");
         }
 
-        $heroImage = $brush['hero_image'];
-
-        // Handle hero image upload
-        if (!empty($_FILES['hero_image']['tmp_name'])) {
-            $uploadDir = "users/{$userId}/brushes";
-            $result = ImageHandler::upload($_FILES['hero_image'], $uploadDir);
-            if ($result['success']) {
-                // Delete old image
-                if ($heroImage) {
-                    ImageHandler::delete($uploadDir, $heroImage);
-                }
-                $heroImage = $result['filename'];
-            } else {
-                flash('error', $result['error']);
-                redirect("/brushes/{$id}/edit");
-            }
-        }
-
         Database::query(
-            "UPDATE brushes SET name = ?, brand = ?, bristle_type = ?, knot_size = ?, loft = ?, handle_material = ?, description = ?, notes = ?, hero_image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $brand ?: null, $bristleType ?: null, $knotSize ?: null, $loft ?: null, $handleMaterial ?: null, $description ?: null, $notes ?: null, $heroImage, $id]
+            "UPDATE brushes SET name = ?, brand = ?, bristle_type = ?, knot_size = ?, loft = ?, handle_material = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$name, $brand ?: null, $bristleType ?: null, $knotSize ?: null, $loft ?: null, $handleMaterial ?: null, $description ?: null, $notes ?: null, $id]
         );
 
         flash('success', 'Brush updated successfully.');

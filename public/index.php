@@ -12,6 +12,14 @@ ini_set('display_errors', 0);
 // Define base path
 define('BASE_PATH', dirname(__DIR__));
 
+// Handle /uploads/* requests for PHP built-in server (htaccess doesn't work with php -S)
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (preg_match('#^/uploads/(.+)$#', $requestUri, $matches)) {
+    $_GET['path'] = $matches[1];
+    require __DIR__ . '/uploads.php';
+    exit;
+}
+
 // Load configuration
 $config = require BASE_PATH . '/config.php';
 if (file_exists(BASE_PATH . '/config.local.php')) {

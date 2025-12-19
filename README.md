@@ -52,8 +52,10 @@ A personal collection tracker for wet shaving enthusiasts. Catalog and manage yo
 
 4. **Start the development server**
    ```bash
-   php -S localhost:8080 -t public
+   php -S localhost:8080 -t public -d upload_max_filesize=10M -d post_max_size=50M
    ```
+
+   Note: The `-d` flags increase PHP's upload limits for image uploads.
 
 5. **Create your first user**
 

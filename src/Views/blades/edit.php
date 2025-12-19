@@ -27,18 +27,7 @@
         <textarea id="notes" name="notes" class="form-input" rows="3"><?= e($blade['notes'] ?? '') ?></textarea>
     </div>
 
-    <div class="form-group">
-        <label for="hero_image" class="form-label">Hero Image</label>
-        <?php if ($blade['hero_image']): ?>
-        <div class="current-image mb-2">
-            <img src="<?= upload_url("users/{$_SESSION['user_id']}/blades/" . str_replace('.', '_thumb.', $blade['hero_image'])) ?>"
-                 alt="Current hero image"
-                 style="max-width: 200px; border-radius: var(--radius-md);">
-            <p class="text-muted text-sm mt-1">Current image. Upload a new one to replace it.</p>
-        </div>
-        <?php endif; ?>
-        <input type="file" id="hero_image" name="hero_image" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
-    </div>
+    <p class="text-muted mb-3">To manage images, go to the <a href="/blades/<?= $blade['id'] ?>">blade detail page</a> where you can upload multiple images and select the tile image.</p>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Update Blade</button>
