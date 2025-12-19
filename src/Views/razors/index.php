@@ -46,7 +46,7 @@
             <?php endif; ?>
         </div>
         <div class="card-body">
-            <h3 class="card-title"><?= e($razor['name']) ?></h3>
+            <h3 class="card-title"><?= e(trim(($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h3>
             <?php if ($razor['total_usage'] > 0): ?>
             <p class="card-text"><?= $razor['total_usage'] ?> blade uses</p>
             <?php endif; ?>

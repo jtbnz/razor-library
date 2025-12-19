@@ -33,7 +33,7 @@
             <?php endif; ?>
         </div>
         <div class="tile-content">
-            <h3 class="tile-title"><?= e($brush['name']) ?></h3>
+            <h3 class="tile-title"><?= e(trim(($brush['brand'] ?? '') . ' ' . $brush['name'])) ?></h3>
             <?php if ($brush['bristle_type']): ?>
             <p class="tile-subtitle"><?= e($brush['bristle_type']) ?></p>
             <?php endif; ?>

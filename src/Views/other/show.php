@@ -19,7 +19,10 @@
 <div class="detail-hero">
     <?php if ($item['hero_image']): ?>
     <img src="<?= upload_url("users/{$_SESSION['user_id']}/other/{$item['hero_image']}") ?>"
-         alt="<?= e($item['name']) ?>">
+         alt="<?= e($item['name']) ?>"
+         class="clickable-image"
+         data-gallery="other-<?= $item['id'] ?>"
+         data-full="<?= upload_url("users/{$_SESSION['user_id']}/other/{$item['hero_image']}") ?>">
     <?php else: ?>
     <div class="placeholder-image">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -132,7 +135,10 @@
                 <div class="image-gallery-item <?= $image['filename'] === $item['hero_image'] ? 'is-hero' : '' ?>">
                     <img src="<?= upload_url("users/{$_SESSION['user_id']}/other/" . str_replace('.', '_thumb.', $image['filename'])) ?>"
                          alt="Additional image"
-                         loading="lazy">
+                         loading="lazy"
+                         class="clickable-image"
+                         data-gallery="other-<?= $item['id'] ?>"
+                         data-full="<?= upload_url("users/{$_SESSION['user_id']}/other/{$image['filename']}") ?>">
                     <?php if ($image['filename'] === $item['hero_image']): ?>
                     <span class="hero-badge">Tile</span>
                     <?php endif; ?>

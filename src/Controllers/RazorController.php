@@ -65,6 +65,7 @@ class RazorController
             return;
         }
 
+        $brand = trim($_POST['brand'] ?? '');
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
@@ -78,8 +79,8 @@ class RazorController
 
         // Create razor first
         Database::query(
-            "INSERT INTO razors (user_id, name, description, notes) VALUES (?, ?, ?, ?)",
-            [$this->userId, $name, $description ?: null, $notes ?: null]
+            "INSERT INTO razors (user_id, brand, name, description, notes) VALUES (?, ?, ?, ?, ?)",
+            [$this->userId, $brand ?: null, $name, $description ?: null, $notes ?: null]
         );
 
         $razorId = Database::lastInsertId();
@@ -224,6 +225,7 @@ class RazorController
             return;
         }
 
+        $brand = trim($_POST['brand'] ?? '');
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
@@ -235,8 +237,8 @@ class RazorController
         }
 
         Database::query(
-            "UPDATE razors SET name = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $description ?: null, $notes ?: null, $razor['id']]
+            "UPDATE razors SET brand = ?, name = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$brand ?: null, $name, $description ?: null, $notes ?: null, $razor['id']]
         );
 
         flash('success', 'Razor updated successfully.');

@@ -10,9 +10,15 @@
             <?= csrf_field() ?>
 
             <div class="form-group">
+                <label for="brand" class="form-label">Brand</label>
+                <input type="text" id="brand" name="brand" class="form-input"
+                       value="<?= e(old('brand')) ?>" autofocus>
+            </div>
+
+            <div class="form-group">
                 <label for="name" class="form-label">Name *</label>
                 <input type="text" id="name" name="name" class="form-input"
-                       value="<?= e(old('name')) ?>" required autofocus>
+                       value="<?= e(old('name')) ?>" required>
             </div>
 
             <div class="form-group">

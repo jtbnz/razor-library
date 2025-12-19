@@ -8,6 +8,11 @@
     <?= csrf_field() ?>
 
     <div class="form-group">
+        <label for="brand" class="form-label">Brand</label>
+        <input type="text" id="brand" name="brand" class="form-input" value="<?= e($razor['brand'] ?? '') ?>">
+    </div>
+
+    <div class="form-group">
         <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
         <input type="text" id="name" name="name" class="form-input" value="<?= e($razor['name']) ?>" required>
     </div>

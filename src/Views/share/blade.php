@@ -6,7 +6,10 @@
 
 <div class="detail-hero">
     <?php if ($blade['hero_image']): ?>
-    <img src="<?= upload_url("users/{$user['id']}/blades/{$blade['hero_image']}") ?>" alt="<?= e($blade['name']) ?>">
+    <img src="<?= upload_url("users/{$user['id']}/blades/{$blade['hero_image']}") ?>" alt="<?= e($blade['name']) ?>"
+         class="clickable-image"
+         data-gallery="blade-<?= $blade['id'] ?>"
+         data-full="<?= upload_url("users/{$user['id']}/blades/{$blade['hero_image']}") ?>">
     <?php else: ?>
     <div class="placeholder-image">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +52,10 @@
             <div class="image-gallery">
                 <?php foreach ($images as $image): ?>
                 <div class="image-gallery-item">
-                    <img src="<?= upload_url("users/{$user['id']}/blades/" . str_replace('.', '_thumb.', $image['filename'])) ?>" alt="Additional image" loading="lazy">
+                    <img src="<?= upload_url("users/{$user['id']}/blades/" . str_replace('.', '_thumb.', $image['filename'])) ?>" alt="Additional image" loading="lazy"
+                         class="clickable-image"
+                         data-gallery="blade-<?= $blade['id'] ?>"
+                         data-full="<?= upload_url("users/{$user['id']}/blades/{$image['filename']}") ?>">
                 </div>
                 <?php endforeach; ?>
             </div>

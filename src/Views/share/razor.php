@@ -8,7 +8,10 @@
 <div class="detail-hero">
     <?php if ($razor['hero_image']): ?>
     <img src="<?= upload_url("users/{$user['id']}/razors/{$razor['hero_image']}") ?>"
-         alt="<?= e($razor['name']) ?>">
+         alt="<?= e($razor['name']) ?>"
+         class="clickable-image"
+         data-gallery="razor-<?= $razor['id'] ?>"
+         data-full="<?= upload_url("users/{$user['id']}/razors/{$razor['hero_image']}") ?>">
     <?php else: ?>
     <div class="placeholder-image">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +65,10 @@
                 <div class="image-gallery-item">
                     <img src="<?= upload_url("users/{$user['id']}/razors/" . str_replace('.', '_thumb.', $image['filename'])) ?>"
                          alt="Additional image"
-                         loading="lazy">
+                         loading="lazy"
+                         class="clickable-image"
+                         data-gallery="razor-<?= $razor['id'] ?>"
+                         data-full="<?= upload_url("users/{$user['id']}/razors/{$image['filename']}") ?>">
                 </div>
                 <?php endforeach; ?>
             </div>

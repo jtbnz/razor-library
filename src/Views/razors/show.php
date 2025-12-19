@@ -1,7 +1,7 @@
 <?php ob_start(); ?>
 
 <div class="page-header">
-    <h1><?= e($razor['name']) ?></h1>
+    <h1><?= e(trim(($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h1>
     <div class="page-header-actions">
         <a href="<?= url('/razors/' . $razor['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
         <form action="<?= url('/razors/' . $razor['id'] . '/delete') ?>" method="POST" style="display: inline;">
@@ -15,7 +15,10 @@
 <div class="detail-hero">
     <?php if ($razor['hero_image']): ?>
     <img src="<?= upload_url("users/{$_SESSION['user_id']}/razors/{$razor['hero_image']}") ?>"
-         alt="<?= e($razor['name']) ?>">
+         alt="<?= e($razor['name']) ?>"
+         class="clickable-image"
+         data-gallery="razor-<?= $razor['id'] ?>"
+         data-full="<?= upload_url("users/{$_SESSION['user_id']}/razors/{$razor['hero_image']}") ?>">
     <?php else: ?>
     <div class="placeholder-image">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,7 +158,10 @@
                 <div class="image-gallery-item <?= $image['filename'] === $razor['hero_image'] ? 'is-hero' : '' ?>">
                     <img src="<?= upload_url("users/{$_SESSION['user_id']}/razors/" . str_replace('.', '_thumb.', $image['filename'])) ?>"
                          alt="Additional image"
-                         loading="lazy">
+                         loading="lazy"
+                         class="clickable-image"
+                         data-gallery="razor-<?= $razor['id'] ?>"
+                         data-full="<?= upload_url("users/{$_SESSION['user_id']}/razors/{$image['filename']}") ?>">
                     <?php if ($image['filename'] === $razor['hero_image']): ?>
                     <span class="hero-badge">Tile</span>
                     <?php endif; ?>
