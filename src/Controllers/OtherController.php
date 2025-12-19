@@ -575,13 +575,14 @@ class OtherController
     }
 
     /**
-     * Record usage for an item
+     * Update last used date
      */
-    public function recordUsage(int $id): void
+    public function updateLastUsed(int $id): void
     {
         if (!verify_csrf()) {
             flash('error', 'Invalid request.');
             redirect("/other/{$id}");
+            return;
         }
 
         $userId = $_SESSION['user_id'];
@@ -592,16 +593,28 @@ class OtherController
         );
 
         if (!$item) {
-            flash('error', 'Item not found.');
             redirect('/other');
+            return;
         }
 
-        Database::query(
-            "UPDATE other_items SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$id]
-        );
+        $lastUsedAt = trim($_POST['last_used_at'] ?? '');
 
-        flash('success', 'Usage recorded.');
+        if (empty($lastUsedAt)) {
+            // Clear the last used date
+            Database::query(
+                "UPDATE other_items SET last_used_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$id]
+            );
+        } else {
+            // Validate and set the date
+            $date = date('Y-m-d H:i:s', strtotime($lastUsedAt));
+            Database::query(
+                "UPDATE other_items SET last_used_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$date, $id]
+            );
+        }
+
+        flash('success', 'Last used date updated.');
         redirect("/other/{$id}");
     }
 

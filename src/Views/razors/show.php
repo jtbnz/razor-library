@@ -79,51 +79,61 @@
     </div>
 
     <div>
-        <!-- Usage Info -->
-        <?php if ($razor['last_used_at']): ?>
+        <!-- Last Used Date -->
         <div class="detail-section">
-            <p class="text-muted">Last used: <?= date('M j, Y', strtotime($razor['last_used_at'])) ?></p>
+            <h3>Last Used</h3>
+            <form action="<?= url('/razors/' . $razor['id'] . '/last-used') ?>" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
+                <?= csrf_field() ?>
+                <input type="date" name="last_used_at" class="form-input" style="width: auto;" value="<?= $razor['last_used_at'] ? date('Y-m-d', strtotime($razor['last_used_at'])) : '' ?>">
+                <button type="submit" class="btn btn-outline">Update</button>
+                <?php if ($razor['last_used_at']): ?>
+                <span class="text-muted">(<?= date('M j, Y', strtotime($razor['last_used_at'])) ?>)</span>
+                <?php endif; ?>
+            </form>
         </div>
-        <?php endif; ?>
 
-        <!-- Blade Usage -->
+        <!-- Blades Used -->
         <div class="detail-section">
-            <h3>Blade Usage</h3>
+            <h3>Blades Used</h3>
             <?php if (!empty($bladeUsage)): ?>
             <div class="mb-3">
                 <?php foreach ($bladeUsage as $usage): ?>
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2" style="padding: 0.5rem; background: var(--color-bg); border-radius: var(--radius-md);">
-                    <span><?= e($usage['blade_name']) ?></span>
-                    <form action="<?= url('/razors/' . $razor['id'] . '/usage') ?>" method="POST" class="usage-counter" id="blade-usage-form-<?= $usage['blade_id'] ?>">
+                    <a href="<?= url('/blades/' . $usage['blade_id']) ?>" class="text-link"><?= e($usage['blade_name']) ?></a>
+                    <form action="<?= url('/razors/' . $razor['id'] . '/blades/' . $usage['blade_id'] . '/remove') ?>" method="POST" style="display: inline;">
                         <?= csrf_field() ?>
-                        <input type="hidden" name="blade_id" value="<?= $usage['blade_id'] ?>">
-                        <input type="hidden" name="count" value="<?= $usage['count'] ?>">
-                        <button type="button" class="decrement">-</button>
-                        <span class="count" id="blade-usage-display-<?= $usage['blade_id'] ?>"><?= $usage['count'] ?></span>
-                        <button type="button" class="increment">+</button>
+                        <button type="submit" class="btn btn-sm btn-outline" data-confirm="Remove this blade?">Remove</button>
                     </form>
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php else: ?>
+            <p class="text-muted mb-3">No blades linked to this razor yet.</p>
             <?php endif; ?>
 
-            <?php if (!empty($allBlades)): ?>
-            <form action="<?= url('/razors/' . $razor['id'] . '/usage') ?>" method="POST">
+            <?php
+            // Filter out blades already linked
+            $linkedBladeIds = array_column($bladeUsage, 'blade_id');
+            $availableBlades = array_filter($allBlades, fn($b) => !in_array($b['id'], $linkedBladeIds));
+            ?>
+            <?php if (!empty($availableBlades)): ?>
+            <form action="<?= url('/razors/' . $razor['id'] . '/blades') ?>" method="POST">
                 <?= csrf_field() ?>
                 <div class="d-flex gap-2 flex-wrap">
                     <select name="blade_id" class="form-select" style="flex: 1; min-width: 150px;" required>
                         <option value="">Select blade...</option>
-                        <?php foreach ($allBlades as $blade): ?>
+                        <?php foreach ($availableBlades as $blade): ?>
                         <option value="<?= $blade['id'] ?>"><?= e($blade['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <input type="number" name="count" value="1" min="0" class="form-input" style="width: 80px;">
-                    <button type="submit" class="btn btn-outline">Add Usage</button>
+                    <button type="submit" class="btn btn-outline">Add Blade</button>
                 </div>
             </form>
-            <?php else: ?>
-            <p class="text-muted">Add some blades first to track usage.</p>
+            <?php elseif (empty($allBlades)): ?>
+            <p class="text-muted">Add some blades first.</p>
             <a href="<?= url('/blades/new') ?>" class="btn btn-sm btn-outline">Add Blade</a>
+            <?php else: ?>
+            <p class="text-muted">All your blades are already linked to this razor.</p>
             <?php endif; ?>
         </div>
 
@@ -165,7 +175,7 @@
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
                     <button type="submit" class="btn btn-outline">Upload Images</button>
                 </div>
-                <p class="form-hint mt-1">You can select multiple images at once.</p>
+                <p class="form-hint mt-1">Max 10MB per image. JPEG, PNG, GIF, or WebP. You can select multiple images.</p>
             </form>
         </div>
     </div>

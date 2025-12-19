@@ -73,7 +73,7 @@
     <div class="form-group">
         <label for="images" class="form-label">Images</label>
         <input type="file" id="images" name="images[]" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
-        <span class="form-hint">Max 10MB per image. You can select multiple images. The first image will be set as the tile/hero image.</span>
+        <span class="form-hint">Max 10MB per image. JPEG, PNG, GIF, or WebP. You can select multiple images. The first image will be set as the tile/hero image.</span>
     </div>
 
     <div class="form-actions">

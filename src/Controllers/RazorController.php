@@ -506,14 +506,11 @@ class RazorController
     }
 
     /**
-     * Update blade usage
+     * Update last used date
      */
-    public function updateUsage(string $id): void
+    public function updateLastUsed(string $id): void
     {
         if (!verify_csrf()) {
-            if (is_ajax()) {
-                json_response(['error' => 'Invalid request'], 400);
-            }
             flash('error', 'Invalid request.');
             redirect('/razors/' . $id);
             return;
@@ -521,15 +518,49 @@ class RazorController
 
         $razor = $this->getRazor($id);
         if (!$razor) {
-            if (is_ajax()) {
-                json_response(['error' => 'Razor not found'], 404);
-            }
+            redirect('/razors');
+            return;
+        }
+
+        $lastUsedAt = trim($_POST['last_used_at'] ?? '');
+
+        if (empty($lastUsedAt)) {
+            // Clear the last used date
+            Database::query(
+                "UPDATE razors SET last_used_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$razor['id']]
+            );
+        } else {
+            // Validate and set the date
+            $date = date('Y-m-d H:i:s', strtotime($lastUsedAt));
+            Database::query(
+                "UPDATE razors SET last_used_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$date, $razor['id']]
+            );
+        }
+
+        flash('success', 'Last used date updated.');
+        redirect('/razors/' . $id);
+    }
+
+    /**
+     * Add a blade to this razor
+     */
+    public function addBlade(string $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/razors/' . $id);
+            return;
+        }
+
+        $razor = $this->getRazor($id);
+        if (!$razor) {
             redirect('/razors');
             return;
         }
 
         $bladeId = (int) ($_POST['blade_id'] ?? 0);
-        $count = max(0, (int) ($_POST['count'] ?? 0));
 
         // Verify blade belongs to user
         $blade = Database::fetch(
@@ -538,48 +569,53 @@ class RazorController
         );
 
         if (!$blade) {
-            if (is_ajax()) {
-                json_response(['error' => 'Blade not found'], 404);
-            }
             flash('error', 'Blade not found.');
             redirect('/razors/' . $id);
             return;
         }
 
-        // Upsert blade usage
+        // Check if already linked
         $existing = Database::fetch(
             "SELECT id FROM blade_usage WHERE razor_id = ? AND blade_id = ?",
             [$razor['id'], $bladeId]
         );
 
-        if ($existing) {
-            if ($count > 0) {
-                Database::query(
-                    "UPDATE blade_usage SET count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-                    [$count, $existing['id']]
-                );
-                // Update last_used_at for both razor and blade
-                Database::query("UPDATE razors SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$razor['id']]);
-                Database::query("UPDATE blades SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$bladeId]);
-            } else {
-                Database::query("DELETE FROM blade_usage WHERE id = ?", [$existing['id']]);
-            }
-        } elseif ($count > 0) {
+        if (!$existing) {
             Database::query(
-                "INSERT INTO blade_usage (razor_id, blade_id, count) VALUES (?, ?, ?)",
-                [$razor['id'], $bladeId, $count]
+                "INSERT INTO blade_usage (razor_id, blade_id, count) VALUES (?, ?, 1)",
+                [$razor['id'], $bladeId]
             );
-            // Update last_used_at for both razor and blade
-            Database::query("UPDATE razors SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$razor['id']]);
-            Database::query("UPDATE blades SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?", [$bladeId]);
+            flash('success', 'Blade added.');
+        } else {
+            flash('info', 'Blade already linked.');
         }
 
-        if (is_ajax()) {
-            json_response(['success' => true, 'count' => $count]);
+        redirect('/razors/' . $id);
+    }
+
+    /**
+     * Remove a blade from this razor
+     */
+    public function removeBlade(string $id, string $bladeId): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/razors/' . $id);
             return;
         }
 
-        flash('success', 'Usage updated.');
+        $razor = $this->getRazor($id);
+        if (!$razor) {
+            redirect('/razors');
+            return;
+        }
+
+        Database::query(
+            "DELETE FROM blade_usage WHERE razor_id = ? AND blade_id = ?",
+            [$razor['id'], $bladeId]
+        );
+
+        flash('success', 'Blade removed.');
         redirect('/razors/' . $id);
     }
 

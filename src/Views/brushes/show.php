@@ -116,19 +116,17 @@
     </div>
 
     <div>
-        <!-- Usage Tracking -->
+        <!-- Last Used Date -->
         <div class="detail-section">
-            <h3>Usage</h3>
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <span class="text-lg"><strong><?= $brush['use_count'] ?></strong> total uses</span>
-                <form action="<?= url('/brushes/' . $brush['id'] . '/use') ?>" method="POST">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-primary">Record Use</button>
-                </form>
-            </div>
-            <?php if ($brush['last_used_at']): ?>
-            <p class="text-muted">Last used: <?= date('M j, Y', strtotime($brush['last_used_at'])) ?></p>
-            <?php endif; ?>
+            <h3>Last Used</h3>
+            <form action="<?= url('/brushes/' . $brush['id'] . '/last-used') ?>" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
+                <?= csrf_field() ?>
+                <input type="date" name="last_used_at" class="form-input" style="width: auto;" value="<?= $brush['last_used_at'] ? date('Y-m-d', strtotime($brush['last_used_at'])) : '' ?>">
+                <button type="submit" class="btn btn-outline">Update</button>
+                <?php if ($brush['last_used_at']): ?>
+                <span class="text-muted">(<?= date('M j, Y', strtotime($brush['last_used_at'])) ?>)</span>
+                <?php endif; ?>
+            </form>
         </div>
 
         <!-- Images -->
@@ -169,7 +167,7 @@
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
                     <button type="submit" class="btn btn-outline">Upload Images</button>
                 </div>
-                <p class="form-hint mt-1">You can select multiple images at once.</p>
+                <p class="form-hint mt-1">Max 10MB per image. JPEG, PNG, GIF, or WebP. You can select multiple images.</p>
             </form>
         </div>
     </div>

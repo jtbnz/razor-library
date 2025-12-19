@@ -87,24 +87,32 @@
     </div>
 
     <div>
-        <!-- Usage Statistics -->
+        <!-- Last Used Date -->
         <div class="detail-section">
-            <h3>Usage Statistics</h3>
-            <p class="text-lg mb-3"><strong><?= $totalUsage ?></strong> total uses</p>
-            <?php if ($blade['last_used_at']): ?>
-            <p class="text-muted mb-3">Last used: <?= date('M j, Y', strtotime($blade['last_used_at'])) ?></p>
-            <?php endif; ?>
+            <h3>Last Used</h3>
+            <form action="<?= url('/blades/' . $blade['id'] . '/last-used') ?>" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
+                <?= csrf_field() ?>
+                <input type="date" name="last_used_at" class="form-input" style="width: auto;" value="<?= $blade['last_used_at'] ? date('Y-m-d', strtotime($blade['last_used_at'])) : '' ?>">
+                <button type="submit" class="btn btn-outline">Update</button>
+                <?php if ($blade['last_used_at']): ?>
+                <span class="text-muted">(<?= date('M j, Y', strtotime($blade['last_used_at'])) ?>)</span>
+                <?php endif; ?>
+            </form>
+        </div>
+
+        <!-- Razors Used With -->
+        <div class="detail-section">
+            <h3>Used With Razors</h3>
             <?php if (!empty($usage)): ?>
-            <div class="usage-breakdown">
+            <div class="mb-3">
                 <?php foreach ($usage as $u): ?>
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2" style="padding: 0.5rem; background: var(--color-bg); border-radius: var(--radius-md);">
-                    <span><?= e($u['razor_name']) ?></span>
-                    <span class="badge badge-secondary"><?= $u['count'] ?> uses</span>
+                    <a href="<?= url('/razors/' . $u['razor_id']) ?>" class="text-link"><?= e($u['razor_name']) ?></a>
                 </div>
                 <?php endforeach; ?>
             </div>
             <?php else: ?>
-            <p class="text-muted">This blade hasn't been used yet. Track usage from a razor's detail page.</p>
+            <p class="text-muted">This blade hasn't been linked to any razors yet. Link it from a razor's detail page.</p>
             <?php endif; ?>
         </div>
 
@@ -146,7 +154,7 @@
                     <input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input" style="flex: 1;" multiple required>
                     <button type="submit" class="btn btn-outline">Upload Images</button>
                 </div>
-                <p class="form-hint mt-1">You can select multiple images at once.</p>
+                <p class="form-hint mt-1">Max 10MB per image. JPEG, PNG, GIF, or WebP. You can select multiple images.</p>
             </form>
         </div>
     </div>

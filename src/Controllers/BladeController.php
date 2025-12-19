@@ -522,4 +522,48 @@ class BladeController
         flash('success', 'URL deleted successfully.');
         redirect("/blades/{$bladeId}");
     }
+
+    /**
+     * Update last used date
+     */
+    public function updateLastUsed(int $id): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect("/blades/{$id}");
+            return;
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $blade = Database::fetch(
+            "SELECT * FROM blades WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+
+        if (!$blade) {
+            redirect('/blades');
+            return;
+        }
+
+        $lastUsedAt = trim($_POST['last_used_at'] ?? '');
+
+        if (empty($lastUsedAt)) {
+            // Clear the last used date
+            Database::query(
+                "UPDATE blades SET last_used_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$id]
+            );
+        } else {
+            // Validate and set the date
+            $date = date('Y-m-d H:i:s', strtotime($lastUsedAt));
+            Database::query(
+                "UPDATE blades SET last_used_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$date, $id]
+            );
+        }
+
+        flash('success', 'Last used date updated.');
+        redirect("/blades/{$id}");
+    }
 }

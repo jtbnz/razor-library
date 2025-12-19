@@ -128,7 +128,9 @@ $router->post('/razors/{id}/images/{imageId}/hero', 'RazorController@setHeroImag
 $router->post('/razors/{id}/images/{imageId}/delete', 'RazorController@deleteImage', ['auth']);
 $router->post('/razors/{id}/urls', 'RazorController@addUrl', ['auth']);
 $router->post('/razors/{id}/urls/{urlId}/delete', 'RazorController@deleteUrl', ['auth']);
-$router->post('/razors/{id}/usage', 'RazorController@updateUsage', ['auth']);
+$router->post('/razors/{id}/last-used', 'RazorController@updateLastUsed', ['auth']);
+$router->post('/razors/{id}/blades', 'RazorController@addBlade', ['auth']);
+$router->post('/razors/{id}/blades/{bladeId}/remove', 'RazorController@removeBlade', ['auth']);
 
 // Blades
 $router->get('/blades', 'BladeController@index', ['auth']);
@@ -143,6 +145,7 @@ $router->post('/blades/{id}/images/{imageId}/hero', 'BladeController@setHeroImag
 $router->post('/blades/{id}/images/{imageId}/delete', 'BladeController@deleteImage', ['auth']);
 $router->post('/blades/{id}/urls', 'BladeController@addUrl', ['auth']);
 $router->post('/blades/{id}/urls/{urlId}/delete', 'BladeController@deleteUrl', ['auth']);
+$router->post('/blades/{id}/last-used', 'BladeController@updateLastUsed', ['auth']);
 
 // Brushes
 $router->get('/brushes', 'BrushController@index', ['auth']);
@@ -157,7 +160,7 @@ $router->post('/brushes/{id}/images/{imageId}/hero', 'BrushController@setHeroIma
 $router->post('/brushes/{id}/images/{imageId}/delete', 'BrushController@deleteImage', ['auth']);
 $router->post('/brushes/{id}/urls', 'BrushController@addUrl', ['auth']);
 $router->post('/brushes/{id}/urls/{urlId}/delete', 'BrushController@deleteUrl', ['auth']);
-$router->post('/brushes/{id}/use', 'BrushController@incrementUsage', ['auth']);
+$router->post('/brushes/{id}/last-used', 'BrushController@updateLastUsed', ['auth']);
 
 // Other items
 $router->get('/other', 'OtherController@index', ['auth']);
@@ -172,7 +175,7 @@ $router->post('/other/{id}/images/{imageId}/hero', 'OtherController@setHeroImage
 $router->post('/other/{id}/images/{imageId}/delete', 'OtherController@deleteImage', ['auth']);
 $router->post('/other/{id}/urls', 'OtherController@addUrl', ['auth']);
 $router->post('/other/{id}/urls/{urlId}/delete', 'OtherController@deleteUrl', ['auth']);
-$router->post('/other/{id}/use', 'OtherController@recordUsage', ['auth']);
+$router->post('/other/{id}/last-used', 'OtherController@updateLastUsed', ['auth']);
 
 // Profile
 $router->get('/profile', 'ProfileController@index', ['auth']);
