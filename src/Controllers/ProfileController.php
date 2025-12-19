@@ -666,9 +666,11 @@ class ProfileController
         $skipped = 0;
         $skipReasons = [];
         $rowNum = 1; // Header is row 1
+        $totalRows = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
             $rowNum++;
+            $totalRows++;
 
             // Skip empty rows
             if (empty(array_filter($row))) {
@@ -713,6 +715,13 @@ class ProfileController
                     $message .= " (and " . (count($skipReasons) - 5) . " more)";
                 }
             }
+        }
+
+        // Debug: if nothing happened, show what headers were found
+        if ($imported === 0 && $skipped === 0) {
+            $message .= " No data rows found (read {$totalRows} rows). Headers detected: [" . implode(', ', $header) . "].";
+        } elseif ($imported === 0 && $totalRows > 0) {
+            $message .= " (processed {$totalRows} data rows)";
         }
 
         flash($imported > 0 ? 'success' : 'warning', $message);
