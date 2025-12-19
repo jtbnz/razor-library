@@ -128,7 +128,7 @@ $router->post('/razors/{id}/images/{imageId}/hero', 'RazorController@setHeroImag
 $router->post('/razors/{id}/images/{imageId}/delete', 'RazorController@deleteImage', ['auth']);
 $router->post('/razors/{id}/urls', 'RazorController@addUrl', ['auth']);
 $router->post('/razors/{id}/urls/{urlId}/delete', 'RazorController@deleteUrl', ['auth']);
-$router->post('/razors/{id}/last-used', 'RazorController@updateLastUsed', ['auth']);
+$router->post('/razors/{id}/usage', 'RazorController@updateUsage', ['auth']);
 $router->post('/razors/{id}/blades', 'RazorController@addBlade', ['auth']);
 $router->post('/razors/{id}/blades/{bladeId}/remove', 'RazorController@removeBlade', ['auth']);
 

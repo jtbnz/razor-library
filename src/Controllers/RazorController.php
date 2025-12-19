@@ -506,9 +506,9 @@ class RazorController
     }
 
     /**
-     * Update last used date
+     * Update usage (use count and last used date)
      */
-    public function updateLastUsed(string $id): void
+    public function updateUsage(string $id): void
     {
         if (!verify_csrf()) {
             flash('error', 'Invalid request.');
@@ -522,24 +522,23 @@ class RazorController
             return;
         }
 
+        $useCount = max(0, (int)($_POST['use_count'] ?? 0));
         $lastUsedAt = trim($_POST['last_used_at'] ?? '');
 
         if (empty($lastUsedAt)) {
-            // Clear the last used date
             Database::query(
-                "UPDATE razors SET last_used_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-                [$razor['id']]
+                "UPDATE razors SET use_count = ?, last_used_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$useCount, $razor['id']]
             );
         } else {
-            // Validate and set the date
             $date = date('Y-m-d H:i:s', strtotime($lastUsedAt));
             Database::query(
-                "UPDATE razors SET last_used_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-                [$date, $razor['id']]
+                "UPDATE razors SET use_count = ?, last_used_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [$useCount, $date, $razor['id']]
             );
         }
 
-        flash('success', 'Last used date updated.');
+        flash('success', 'Usage updated.');
         redirect('/razors/' . $id);
     }
 

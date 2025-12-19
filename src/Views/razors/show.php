@@ -79,15 +79,24 @@
     </div>
 
     <div>
-        <!-- Last Used Date -->
+        <!-- Usage Tracking -->
         <div class="detail-section">
-            <h3>Last Used</h3>
-            <form action="<?= url('/razors/' . $razor['id'] . '/last-used') ?>" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
+            <h3>Usage</h3>
+            <form action="<?= url('/razors/' . $razor['id'] . '/usage') ?>" method="POST">
                 <?= csrf_field() ?>
-                <input type="date" name="last_used_at" class="form-input" style="width: auto;" value="<?= $razor['last_used_at'] ? date('Y-m-d', strtotime($razor['last_used_at'])) : '' ?>">
-                <button type="submit" class="btn btn-outline">Update</button>
+                <div class="d-flex gap-3 flex-wrap align-items-end mb-3">
+                    <div>
+                        <label for="use_count" class="form-label">Use Count</label>
+                        <input type="number" id="use_count" name="use_count" class="form-input" style="width: 100px;" value="<?= (int)($razor['use_count'] ?? 0) ?>" min="0">
+                    </div>
+                    <div>
+                        <label for="last_used_at" class="form-label">Last Used</label>
+                        <input type="date" id="last_used_at" name="last_used_at" class="form-input" style="width: auto;" value="<?= $razor['last_used_at'] ? date('Y-m-d', strtotime($razor['last_used_at'])) : '' ?>">
+                    </div>
+                    <button type="submit" class="btn btn-outline">Update</button>
+                </div>
                 <?php if ($razor['last_used_at']): ?>
-                <span class="text-muted">(<?= date('M j, Y', strtotime($razor['last_used_at'])) ?>)</span>
+                <p class="text-muted">Last used: <?= date('M j, Y', strtotime($razor['last_used_at'])) ?></p>
                 <?php endif; ?>
             </form>
         </div>
