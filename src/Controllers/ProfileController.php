@@ -696,7 +696,7 @@ class ProfileController
                     $skipped++;
                     $skipReasons[] = $result; // Now returns reason string
                 }
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 $skipReasons[] = "Row {$rowNum}: " . $e->getMessage();
                 $skipped++;
             }
@@ -730,9 +730,9 @@ class ProfileController
 
     /**
      * Import a single razor row
-     * @return true|string True on success, or error message string on failure
+     * @return bool|string True on success, or error message string on failure
      */
-    private function importRazorRow(int $userId, array $data): true|string
+    private function importRazorRow(int $userId, array $data): bool|string
     {
         // Get name from 'name' column, or combine 'brand' and 'name'
         $name = '';
@@ -782,9 +782,9 @@ class ProfileController
 
     /**
      * Import a single blade row
-     * @return true|string True on success, or error message string on failure
+     * @return bool|string True on success, or error message string on failure
      */
-    private function importBladeRow(int $userId, array $data): true|string
+    private function importBladeRow(int $userId, array $data): bool|string
     {
         $name = trim($data['name'] ?? '');
         $brand = trim($data['brand'] ?? '');
@@ -816,9 +816,9 @@ class ProfileController
 
     /**
      * Import a single brush row
-     * @return true|string True on success, or error message string on failure
+     * @return bool|string True on success, or error message string on failure
      */
-    private function importBrushRow(int $userId, array $data): true|string
+    private function importBrushRow(int $userId, array $data): bool|string
     {
         // Get name from 'name' column, or combine 'brand' and 'name'
         $name = '';
