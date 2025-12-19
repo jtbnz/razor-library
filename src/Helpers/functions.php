@@ -257,11 +257,22 @@ function base_url(string $path = ''): string
 }
 
 /**
- * Asset URL helper
+ * Asset URL helper with cache busting
  */
 function asset(string $path): string
 {
-    return base_path() . '/assets/' . ltrim($path, '/');
+    $assetPath = base_path() . '/assets/' . ltrim($path, '/');
+
+    // Add cache-busting version for CSS and JS files
+    $ext = pathinfo($path, PATHINFO_EXTENSION);
+    if (in_array($ext, ['css', 'js'])) {
+        $filePath = BASE_PATH . '/public/assets/' . ltrim($path, '/');
+        if (file_exists($filePath)) {
+            $assetPath .= '?v=' . filemtime($filePath);
+        }
+    }
+
+    return $assetPath;
 }
 
 /**
