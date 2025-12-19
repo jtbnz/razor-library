@@ -12,33 +12,61 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="<?= url('/share/' . e($token)) ?>" class="header-logo">
-                    <span class="logo-text"><?= e($user['username']) ?>'s Collection</span>
-                </a>
-            </div>
-            <nav class="header-nav">
-                <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="nav-link">Razors</a>
-                <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="nav-link">Blades</a>
-                <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="nav-link">Brushes</a>
-                <a href="<?= url('/share/' . e($token) . '/other') ?>" class="nav-link">Other</a>
-            </nav>
+        <div class="header-inner">
+            <a href="<?= url('/share/' . e($token)) ?>" class="logo"><?= e($user['username']) ?>'s Collection</a>
+
             <button class="menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
             </button>
+
+            <nav class="nav-desktop">
+                <?php
+                $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+                $isRazors = strpos($currentPath, '/razors') !== false;
+                $isBlades = strpos($currentPath, '/blades') !== false;
+                $isBrushes = strpos($currentPath, '/brushes') !== false;
+                $isOther = strpos($currentPath, '/other') !== false;
+                ?>
+                <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="<?= $isRazors ? 'active' : '' ?>">Razors</a>
+                <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="<?= $isBlades ? 'active' : '' ?>">Blades</a>
+                <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="<?= $isBrushes ? 'active' : '' ?>">Brushes</a>
+                <a href="<?= url('/share/' . e($token) . '/other') ?>" class="<?= $isOther ? 'active' : '' ?>">Other</a>
+            </nav>
         </div>
     </header>
 
-    <!-- Mobile Navigation -->
-    <nav class="mobile-nav">
-        <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="mobile-nav-link">Razors</a>
-        <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="mobile-nav-link">Blades</a>
-        <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="mobile-nav-link">Brushes</a>
-        <a href="<?= url('/share/' . e($token) . '/other') ?>" class="mobile-nav-link">Other</a>
-    </nav>
+    <!-- Mobile Sidebar (same as app layout) -->
+    <aside class="sidebar share-sidebar">
+        <nav class="sidebar-nav">
+            <a href="<?= url('/share/' . e($token) . '/razors') ?>" class="<?= $isRazors ? 'active' : '' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Razors
+            </a>
+            <a href="<?= url('/share/' . e($token) . '/blades') ?>" class="<?= $isBlades ? 'active' : '' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5v6m-6-6h6"/>
+                </svg>
+                Blades
+            </a>
+            <a href="<?= url('/share/' . e($token) . '/brushes') ?>" class="<?= $isBrushes ? 'active' : '' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Brushes
+            </a>
+            <a href="<?= url('/share/' . e($token) . '/other') ?>" class="<?= $isOther ? 'active' : '' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Other
+            </a>
+        </nav>
+    </aside>
+    <div class="sidebar-overlay"></div>
 
     <!-- Main Content -->
     <main class="share-main">

@@ -1274,6 +1274,32 @@ hr {
 /* ============================================
    Share Page Styles
    ============================================ */
+
+/* Hide sidebar on share pages by default (desktop) */
+.share-sidebar {
+    display: none;
+}
+
+/* On mobile, show the sidebar when menu is open */
+@media (max-width: 992px) {
+    .share-sidebar {
+        display: block;
+        position: fixed;
+        left: -100%;
+        top: var(--header-height);
+        width: var(--sidebar-width);
+        height: calc(100vh - var(--header-height));
+        background: var(--color-bg-alt);
+        border-right: 1px solid var(--color-border);
+        transition: left var(--transition-normal);
+        z-index: 99;
+    }
+
+    .share-sidebar.open {
+        left: 0;
+    }
+}
+
 .share-main {
     padding: var(--spacing-xl) var(--spacing-md);
     min-height: calc(100vh - var(--header-height) - 60px);
