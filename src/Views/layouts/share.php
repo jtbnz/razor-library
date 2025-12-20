@@ -45,7 +45,6 @@
                     <!-- Safety razor icon -->
                     <rect x="8" y="2" width="8" height="5" rx="1" stroke-width="2"/>
                     <line x1="12" y1="7" x2="12" y2="22" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="9" y1="10" x2="15" y2="10" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 Razors
             </a>
