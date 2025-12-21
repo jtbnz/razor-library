@@ -47,8 +47,9 @@
                     <div class="form-group">
                         <label for="bmac_webhook_secret" class="form-label">Webhook Secret</label>
                         <input type="password" id="bmac_webhook_secret" name="bmac_webhook_secret" class="form-input"
-                               placeholder="<?= !empty($config['bmac_webhook_secret']) ? '••••••••' : 'Enter secret' ?>">
-                        <p class="form-hint">Used to verify incoming webhooks from BMaC.</p>
+                               value="<?= !empty($config['bmac_webhook_secret']) ? '••••••••••••••••' : '' ?>"
+                               placeholder="Enter webhook secret">
+                        <p class="form-hint">Used to verify incoming webhooks from BMaC. Leave unchanged to keep existing secret.</p>
                     </div>
 
                     <div class="form-group">

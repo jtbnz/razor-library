@@ -82,13 +82,13 @@ class SubscriptionController
                 'trial_days' => max(1, intval($_POST['trial_days'] ?? 7)),
                 'subscription_check_enabled' => isset($_POST['subscription_check_enabled']) ? 1 : 0,
                 'expired_message' => trim($_POST['expired_message'] ?? ''),
-                'bmac_webhook_secret' => trim($_POST['bmac_webhook_secret'] ?? ''),
                 'bmac_membership_url' => trim($_POST['bmac_membership_url'] ?? ''),
             ];
 
-            // Only update access token if provided (don't clear it)
-            if (!empty($_POST['bmac_access_token'])) {
-                $settings['bmac_access_token'] = trim($_POST['bmac_access_token']);
+            // Only update webhook secret if it's not the masked placeholder value
+            $webhookSecret = trim($_POST['bmac_webhook_secret'] ?? '');
+            if (!empty($webhookSecret) && $webhookSecret !== '••••••••••••••••') {
+                $settings['bmac_webhook_secret'] = $webhookSecret;
             }
 
             SubscriptionChecker::updateConfig($settings);
