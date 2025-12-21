@@ -59,6 +59,14 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="bmac_membership_url" class="form-label">Membership Page URL</label>
+                        <input type="url" id="bmac_membership_url" name="bmac_membership_url" class="form-input"
+                               value="<?= e($config['bmac_membership_url'] ?? '') ?>"
+                               placeholder="https://buymeacoffee.com/yourusername">
+                        <p class="form-hint">Your Buy Me a Coffee membership page URL. Users will be directed here to subscribe.</p>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label">Webhook URL</label>
                         <input type="text" class="form-input" value="<?= e(config('APP_URL') . '/webhook/bmac') ?>" readonly>
                         <p class="form-hint">Configure this URL in your BMaC webhook settings.</p>

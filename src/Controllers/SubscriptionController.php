@@ -27,6 +27,7 @@ class SubscriptionController
         return view('subscription/expired', [
             'message' => $config['expired_message'] ?? 'Your subscription has expired.',
             'status' => $status,
+            'bmac_url' => $config['bmac_membership_url'] ?? 'https://buymeacoffee.com/',
         ]);
     }
 
@@ -82,6 +83,7 @@ class SubscriptionController
                 'subscription_check_enabled' => isset($_POST['subscription_check_enabled']) ? 1 : 0,
                 'expired_message' => trim($_POST['expired_message'] ?? ''),
                 'bmac_webhook_secret' => trim($_POST['bmac_webhook_secret'] ?? ''),
+                'bmac_membership_url' => trim($_POST['bmac_membership_url'] ?? ''),
             ];
 
             // Only update access token if provided (don't clear it)

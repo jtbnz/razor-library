@@ -26,7 +26,7 @@ $title = 'Subscription Expired - Razor Library';
                 <?php endif; ?>
 
                 <div class="d-flex flex-column gap-3">
-                    <a href="https://buymeacoffee.com/" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                    <a href="<?= e($bmac_url) ?>" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
                         Subscribe Now
                     </a>
 
