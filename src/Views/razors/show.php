@@ -1,7 +1,7 @@
 <?php ob_start(); ?>
 
 <div class="page-header">
-    <h1><?= e(trim(($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h1>
+    <h1><?= e(trim(($razor['year_manufactured'] ? $razor['year_manufactured'] . ' ' : '') . ($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h1>
     <div class="page-header-actions">
         <a href="<?= url('/razors/' . $razor['id'] . '/edit') ?>" class="btn btn-outline">Edit</a>
         <form action="<?= url('/razors/' . $razor['id'] . '/delete') ?>" method="POST" style="display: inline;">
