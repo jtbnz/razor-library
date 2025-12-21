@@ -13,9 +13,14 @@ class WebhookController
     {
         // Get raw request body
         $payload = file_get_contents('php://input');
-        $signature = $_SERVER['HTTP_X_BMC_SIGNATURE'] ?? '';
 
-        // Log the incoming webhook
+        // BMC may use different header names - check all possibilities
+        $signature = $_SERVER['HTTP_X_BMC_SIGNATURE']
+            ?? $_SERVER['HTTP_X_SIGNATURE_SHA256']
+            ?? $_SERVER['HTTP_X_BUYMEACOFFEE_SIGNATURE']
+            ?? '';
+
+        // Log the incoming webhook with all headers for debugging
         $this->logWebhook('bmac', $payload, $signature);
 
         // Verify signature
@@ -238,9 +243,18 @@ class WebhookController
             mkdir($logDir, 0755, true);
         }
 
+        // Collect all HTTP headers for debugging
+        $headers = [];
+        foreach ($_SERVER as $key => $value) {
+            if (str_starts_with($key, 'HTTP_')) {
+                $headers[$key] = $value;
+            }
+        }
+
         $logFile = $logDir . '/webhooks.log';
         $logEntry = date('[Y-m-d H:i:s] ') . strtoupper($source) . " webhook received\n";
-        $logEntry .= "Signature: " . ($signature ?: 'none') . "\n";
+        $logEntry .= "Signature used: " . ($signature ?: 'none') . "\n";
+        $logEntry .= "All HTTP headers:\n" . json_encode($headers, JSON_PRETTY_PRINT) . "\n";
         $logEntry .= "Payload: " . $payload . "\n";
         $logEntry .= str_repeat('-', 80) . "\n";
 
