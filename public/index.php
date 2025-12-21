@@ -66,8 +66,24 @@ require_once BASE_PATH . '/src/Helpers/functions.php';
 require_once BASE_PATH . '/src/Helpers/Database.php';
 Database::init();
 
-// Start session
+// Set security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-ancestors 'none';");
+
+// Start session with secure settings
 session_name(config('SESSION_NAME'));
+$secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+session_set_cookie_params([
+    'lifetime' => config('SESSION_LIFETIME', 86400),
+    'path' => config('APP_BASE_PATH', '/') ?: '/',
+    'domain' => '',
+    'secure' => $secure,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 // Initialize CSRF token if not set
