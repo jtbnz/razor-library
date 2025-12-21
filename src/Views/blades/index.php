@@ -7,14 +7,41 @@
     </div>
 </div>
 
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="<?= url('/blades') ?>" class="search-filter-form">
+            <div class="search-row">
+                <div class="search-input-wrapper">
+                    <input type="text" name="q" class="form-input" placeholder="Search blades..."
+                           value="<?= e($search ?? '') ?>">
+                </div>
+                <?php if (!empty($countries)): ?>
+                <select name="country" class="form-select" style="width: auto;">
+                    <option value="">All Countries</option>
+                    <?php foreach ($countries as $country): ?>
+                    <option value="<?= e($country) ?>" <?= ($filters['country'] ?? '') === $country ? 'selected' : '' ?>><?= e($country) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php endif; ?>
+                <button type="submit" class="btn btn-primary">Search</button>
+                <?php if (($search ?? '') || ($filters['country'] ?? '')): ?>
+                <a href="<?= url('/blades') ?>" class="btn btn-outline">Clear</a>
+                <?php endif; ?>
+            </div>
+            <input type="hidden" name="sort" value="<?= e($sort) ?>">
+        </form>
+    </div>
+</div>
+
 <?php if (!empty($blades)): ?>
 <div class="sort-controls mb-3">
     <span class="text-muted">Sort by:</span>
-    <a href="<?= url('/blades?sort=name') ?>" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
-    <a href="<?= url('/blades?sort=date') ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
-    <a href="<?= url('/blades?sort=usage') ?>" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
-    <a href="<?= url('/blades?sort=last_used') ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
-    <a href="<?= url('/blades?sort=country_asc') ?>" class="btn btn-sm <?= $sort === 'country_asc' ? 'btn-primary' : 'btn-outline' ?>">Country</a>
+    <a href="<?= url('/blades?sort=name' . ($search ? '&q=' . urlencode($search) : '')) ?>" class="btn btn-sm <?= $sort === 'name' ? 'btn-primary' : 'btn-outline' ?>">Name</a>
+    <a href="<?= url('/blades?sort=date' . ($search ? '&q=' . urlencode($search) : '')) ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
+    <a href="<?= url('/blades?sort=usage' . ($search ? '&q=' . urlencode($search) : '')) ?>" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
+    <a href="<?= url('/blades?sort=last_used' . ($search ? '&q=' . urlencode($search) : '')) ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
+    <a href="<?= url('/blades?sort=country_asc' . ($search ? '&q=' . urlencode($search) : '')) ?>" class="btn btn-sm <?= $sort === 'country_asc' ? 'btn-primary' : 'btn-outline' ?>">Country</a>
 </div>
 
 <div class="tile-grid">

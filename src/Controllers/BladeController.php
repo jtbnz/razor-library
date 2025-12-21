@@ -12,6 +12,8 @@ class BladeController
     {
         $userId = $_SESSION['user_id'];
         $sort = $_GET['sort'] ?? 'name';
+        $search = trim($_GET['q'] ?? '');
+        $filterCountry = $_GET['country'] ?? '';
 
         $orderBy = match ($sort) {
             'date' => 'created_at DESC',
@@ -22,18 +24,46 @@ class BladeController
             default => 'name ASC',
         };
 
+        // Build query with filters
+        $where = ['user_id = ?', 'deleted_at IS NULL'];
+        $params = [$userId];
+
+        if ($search) {
+            $where[] = "(name LIKE ? OR brand LIKE ? OR description LIKE ? OR notes LIKE ?)";
+            $searchTerm = "%{$search}%";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if ($filterCountry) {
+            $where[] = "country_manufactured = ?";
+            $params[] = $filterCountry;
+        }
+
+        $whereClause = implode(' AND ', $where);
+
         $blades = Database::fetchAll(
             "SELECT blades.*,
                     (SELECT COALESCE(SUM(bu.count), 0) FROM blade_usage bu WHERE bu.blade_id = blades.id) as total_usage
              FROM blades
-             WHERE user_id = ? AND deleted_at IS NULL
+             WHERE {$whereClause}
              ORDER BY {$orderBy}",
+            $params
+        );
+
+        // Get filter options
+        $countries = Database::fetchAll(
+            "SELECT DISTINCT country_manufactured FROM blades WHERE user_id = ? AND deleted_at IS NULL AND country_manufactured IS NOT NULL ORDER BY country_manufactured",
             [$userId]
         );
 
         return view('blades/index', [
             'blades' => $blades,
             'sort' => $sort,
+            'search' => $search,
+            'filters' => [
+                'country' => $filterCountry,
+            ],
+            'countries' => array_column($countries, 'country_manufactured'),
         ]);
     }
 

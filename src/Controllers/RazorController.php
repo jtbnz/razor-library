@@ -18,6 +18,10 @@ class RazorController
     public function index(): void
     {
         $sort = $_GET['sort'] ?? 'name_asc';
+        $search = trim($_GET['q'] ?? '');
+        $filterCountry = $_GET['country'] ?? '';
+        $filterYearFrom = $_GET['year_from'] ?? '';
+        $filterYearTo = $_GET['year_to'] ?? '';
 
         $orderBy = match ($sort) {
             'name_desc' => 'name DESC',
@@ -32,12 +36,45 @@ class RazorController
             default => 'name ASC',
         };
 
+        // Build query with filters
+        $where = ['r.user_id = ?', 'r.deleted_at IS NULL'];
+        $params = [$this->userId];
+
+        if ($search) {
+            $where[] = "(r.name LIKE ? OR r.brand LIKE ? OR r.description LIKE ? OR r.notes LIKE ?)";
+            $searchTerm = "%{$search}%";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if ($filterCountry) {
+            $where[] = "r.country_manufactured = ?";
+            $params[] = $filterCountry;
+        }
+
+        if ($filterYearFrom) {
+            $where[] = "r.year_manufactured >= ?";
+            $params[] = (int) $filterYearFrom;
+        }
+
+        if ($filterYearTo) {
+            $where[] = "r.year_manufactured <= ?";
+            $params[] = (int) $filterYearTo;
+        }
+
+        $whereClause = implode(' AND ', $where);
+
         $razors = Database::fetchAll(
             "SELECT r.*,
                     (SELECT COALESCE(SUM(count), 0) FROM blade_usage WHERE razor_id = r.id) as total_usage
              FROM razors r
-             WHERE r.user_id = ? AND r.deleted_at IS NULL
+             WHERE {$whereClause}
              ORDER BY {$orderBy}",
+            $params
+        );
+
+        // Get filter options
+        $countries = Database::fetchAll(
+            "SELECT DISTINCT country_manufactured FROM razors WHERE user_id = ? AND deleted_at IS NULL AND country_manufactured IS NOT NULL ORDER BY country_manufactured",
             [$this->userId]
         );
 
@@ -45,6 +82,13 @@ class RazorController
             'title' => 'Razors - Razor Library',
             'razors' => $razors,
             'sort' => $sort,
+            'search' => $search,
+            'filters' => [
+                'country' => $filterCountry,
+                'year_from' => $filterYearFrom,
+                'year_to' => $filterYearTo,
+            ],
+            'countries' => array_column($countries, 'country_manufactured'),
         ]);
     }
 
