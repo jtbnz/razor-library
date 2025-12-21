@@ -1,5 +1,5 @@
 <?php
-$title = '403 Forbidden - Razor Library';
+$title = '500 Internal Server Error - Razor Library';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,11 +16,11 @@ $title = '403 Forbidden - Razor Library';
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-box-header">
-                <h1>403</h1>
-                <p class="mb-0">Access Denied</p>
+                <h1>500</h1>
+                <p class="mb-0">Server Error</p>
             </div>
             <div class="auth-box-body" style="text-align: center;">
-                <p>You don't have permission to access this page. If you believe this is an error, please contact an administrator.</p>
+                <p>Something went wrong on our end. Please try again later or contact support if the problem persists.</p>
                 <a href="<?= function_exists('url') ? url('/') : '/' ?>" class="btn btn-primary">Return Home</a>
             </div>
         </div>

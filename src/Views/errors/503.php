@@ -1,5 +1,5 @@
 <?php
-$title = '403 Forbidden - Razor Library';
+$title = '503 Service Unavailable - Razor Library';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,12 +16,12 @@ $title = '403 Forbidden - Razor Library';
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-box-header">
-                <h1>403</h1>
-                <p class="mb-0">Access Denied</p>
+                <h1>503</h1>
+                <p class="mb-0">Service Unavailable</p>
             </div>
             <div class="auth-box-body" style="text-align: center;">
-                <p>You don't have permission to access this page. If you believe this is an error, please contact an administrator.</p>
-                <a href="<?= function_exists('url') ? url('/') : '/' ?>" class="btn btn-primary">Return Home</a>
+                <p>We're currently undergoing maintenance. Please check back shortly.</p>
+                <a href="<?= function_exists('url') ? url('/') : '/' ?>" class="btn btn-primary">Try Again</a>
             </div>
         </div>
     </div>

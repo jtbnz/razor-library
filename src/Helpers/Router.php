@@ -81,7 +81,7 @@ class Router
             case 'admin':
                 if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
                     http_response_code(403);
-                    echo view('errors/403');
+                    require BASE_PATH . '/src/Views/errors/403.php';
                     return false;
                 }
                 return true;
@@ -131,6 +131,26 @@ class Router
     private function notFound(): void
     {
         http_response_code(404);
-        echo view('errors/404');
+        require BASE_PATH . '/src/Views/errors/404.php';
+        exit;
+    }
+
+    public static function forbidden(): void
+    {
+        http_response_code(403);
+        require BASE_PATH . '/src/Views/errors/403.php';
+        exit;
+    }
+
+    public static function error(int $code = 500): void
+    {
+        http_response_code($code);
+        $file = BASE_PATH . "/src/Views/errors/{$code}.php";
+        if (file_exists($file)) {
+            require $file;
+        } else {
+            require BASE_PATH . '/src/Views/errors/500.php';
+        }
+        exit;
     }
 }
