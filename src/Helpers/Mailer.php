@@ -223,4 +223,125 @@ class Mailer
 
         return self::send($oldEmail, $subject, $body);
     }
+
+    /**
+     * Send trial expiry warning email
+     */
+    public static function sendTrialWarning(string $to, string $username, string $expiresAt, int $daysRemaining): bool
+    {
+        if (!self::shouldSendEmail('trial_warning', $to)) {
+            return true; // User opted out
+        }
+
+        $appName = config('APP_NAME');
+        $appUrl = config('APP_URL');
+
+        $subject = "Your {$appName} trial expires in {$daysRemaining} days";
+
+        $body = "Hi {$username},\n\n";
+        $body .= "Your {$appName} free trial will expire on " . date('F j, Y', strtotime($expiresAt)) . ".\n\n";
+        $body .= "To continue using {$appName} and keep access to your razor collection, please subscribe before your trial ends.\n\n";
+        $body .= "Subscribe here: https://buymeacoffee.com/\n\n";
+        $body .= "If you have any questions, feel free to reply to this email.\n\n";
+        $body .= "- {$appName}";
+
+        return self::send($to, $subject, $body);
+    }
+
+    /**
+     * Send subscription renewal reminder
+     */
+    public static function sendRenewalReminder(string $to, string $username, string $expiresAt, int $daysRemaining): bool
+    {
+        if (!self::shouldSendEmail('renewal_reminder', $to)) {
+            return true; // User opted out
+        }
+
+        $appName = config('APP_NAME');
+
+        $subject = "Your {$appName} subscription renews in {$daysRemaining} days";
+
+        $body = "Hi {$username},\n\n";
+        $body .= "Just a friendly reminder that your {$appName} subscription will renew on " . date('F j, Y', strtotime($expiresAt)) . ".\n\n";
+        $body .= "If you have any questions about your subscription, feel free to reply to this email.\n\n";
+        $body .= "Thank you for being a member!\n\n";
+        $body .= "- {$appName}";
+
+        return self::send($to, $subject, $body);
+    }
+
+    /**
+     * Send subscription expired notification
+     */
+    public static function sendSubscriptionExpired(string $to, string $username): bool
+    {
+        if (!self::shouldSendEmail('trial_warning', $to)) {
+            return true; // Uses same preference as trial warning
+        }
+
+        $appName = config('APP_NAME');
+
+        $subject = "Your {$appName} subscription has expired";
+
+        $body = "Hi {$username},\n\n";
+        $body .= "Your {$appName} subscription has expired.\n\n";
+        $body .= "Don't worry - your razor collection data is safe and will be waiting for you when you resubscribe.\n\n";
+        $body .= "You can download your collection data anytime by logging in.\n\n";
+        $body .= "To restore access to your collection, subscribe here: https://buymeacoffee.com/\n\n";
+        $body .= "- {$appName}";
+
+        return self::send($to, $subject, $body);
+    }
+
+    /**
+     * Check if we should send an email based on user preferences
+     */
+    private static function shouldSendEmail(string $emailType, string $email): bool
+    {
+        // Security emails always sent
+        $alwaysSend = ['password_reset', 'email_verification', 'account_deleted', 'security_alert', 'email_changed'];
+        if (in_array($emailType, $alwaysSend)) {
+            return true;
+        }
+
+        // Get user preferences
+        $user = Database::fetch("SELECT * FROM users WHERE email = ? AND deleted_at IS NULL", [$email]);
+        if (!$user) {
+            return true; // User not found, send anyway
+        }
+
+        $mapping = [
+            'trial_warning' => 'email_trial_warnings',
+            'renewal_reminder' => 'email_renewal_reminders',
+            'subscription_expired' => 'email_trial_warnings',
+            'account_update' => 'email_account_updates',
+            'marketing' => 'email_marketing',
+        ];
+
+        $field = $mapping[$emailType] ?? null;
+        return $field ? (bool) ($user[$field] ?? 1) : true;
+    }
+
+    /**
+     * Log email send (to prevent duplicates)
+     */
+    public static function logEmailSent(int $userId, string $emailType): void
+    {
+        Database::query(
+            "INSERT INTO email_log (user_id, email_type) VALUES (?, ?)",
+            [$userId, $emailType]
+        );
+    }
+
+    /**
+     * Check if email was already sent today
+     */
+    public static function wasEmailSentToday(int $userId, string $emailType): bool
+    {
+        $result = Database::fetch(
+            "SELECT COUNT(*) as count FROM email_log WHERE user_id = ? AND email_type = ? AND DATE(sent_at) = DATE('now')",
+            [$userId, $emailType]
+        );
+        return ($result['count'] ?? 0) > 0;
+    }
 }
