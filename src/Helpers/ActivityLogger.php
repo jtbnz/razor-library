@@ -22,14 +22,12 @@ class ActivityLogger
         ?array $details = null,
         ?int $userId = null
     ): void {
-        $db = Database::getInstance();
-
         // Use session user if not specified
         if ($userId === null && isset($_SESSION['user_id'])) {
             $userId = $_SESSION['user_id'];
         }
 
-        $db->query(
+        Database::query(
             "INSERT INTO activity_log (user_id, action, target_type, target_id, details, ip_address, user_agent)
              VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
@@ -112,7 +110,6 @@ class ActivityLogger
         ?string $dateTo = null,
         ?string $search = null
     ): array {
-        $db = Database::getInstance();
         $offset = ($page - 1) * $perPage;
 
         $where = [];
@@ -148,7 +145,7 @@ class ActivityLogger
 
         // Get total count
         $countSql = "SELECT COUNT(*) as count FROM activity_log a {$whereClause}";
-        $total = $db->query($countSql, $params)[0]['count'];
+        $total = Database::fetch($countSql, $params)['count'];
 
         // Get activities
         $sql = "SELECT a.*, u.username, u.email as user_email
@@ -161,7 +158,7 @@ class ActivityLogger
         $params[] = $perPage;
         $params[] = $offset;
 
-        $activities = $db->query($sql, $params);
+        $activities = Database::fetchAll($sql, $params);
 
         // Decode JSON details
         foreach ($activities as &$activity) {
@@ -184,8 +181,7 @@ class ActivityLogger
      */
     public static function getActionTypes(): array
     {
-        $db = Database::getInstance();
-        $result = $db->query("SELECT DISTINCT action FROM activity_log ORDER BY action");
+        $result = Database::fetchAll("SELECT DISTINCT action FROM activity_log ORDER BY action");
         return array_column($result, 'action');
     }
 
