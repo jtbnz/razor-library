@@ -202,6 +202,9 @@ $router->post('/profile/import-csv', 'ProfileController@importCsv', ['auth']);
 $router->get('/profile/csv-template', 'ProfileController@downloadTemplate', ['auth']);
 $router->get('/verify-email/{token}', 'ProfileController@verifyEmail');
 $router->post('/profile/cancel-email-change', 'ProfileController@cancelEmailChange', ['auth']);
+$router->get('/profile/delete', 'ProfileController@showDelete', ['auth']);
+$router->post('/profile/delete', 'ProfileController@requestDeletion', ['auth']);
+$router->post('/profile/cancel-deletion', 'ProfileController@cancelDeletion', ['auth']);
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);

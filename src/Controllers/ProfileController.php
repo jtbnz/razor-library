@@ -972,6 +972,151 @@ class ProfileController
     }
 
     /**
+     * Show account deletion confirmation page
+     */
+    public function showDelete(): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        // Get collection stats for warning
+        $stats = [
+            'razors' => Database::fetch("SELECT COUNT(*) as count FROM razors WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'blades' => Database::fetch("SELECT COUNT(*) as count FROM blades WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'brushes' => Database::fetch("SELECT COUNT(*) as count FROM brushes WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'other' => Database::fetch("SELECT COUNT(*) as count FROM other_items WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+        ];
+
+        return view('profile/delete', [
+            'user' => $user,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Request account deletion
+     */
+    public function requestDeletion(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile/delete');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        // Verify confirmation text
+        $confirmText = trim($_POST['confirm_text'] ?? '');
+        if ($confirmText !== 'DELETE MY ACCOUNT') {
+            flash('error', 'Please type "DELETE MY ACCOUNT" exactly to confirm.');
+            redirect('/profile/delete');
+        }
+
+        // Set deletion schedule (30 days from now)
+        $deletionDays = config('DELETION_RECOVERY_DAYS', 30);
+        Database::query(
+            "UPDATE users SET deletion_requested_at = CURRENT_TIMESTAMP, deletion_scheduled_at = datetime('now', '+' || ? || ' days') WHERE id = ?",
+            [$deletionDays, $userId]
+        );
+
+        // Log the deletion request
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::log('account_deletion_requested', 'user', $userId, [
+                'scheduled_for' => date('Y-m-d H:i:s', time() + ($deletionDays * 86400)),
+            ]);
+        }
+
+        // Send confirmation email
+        $this->sendDeletionConfirmationEmail($user, $deletionDays);
+
+        // Log the user out
+        session_destroy();
+        session_start();
+
+        flash('success', "Your account has been scheduled for deletion. You have {$deletionDays} days to recover it by logging back in.");
+        redirect('/login');
+    }
+
+    /**
+     * Cancel account deletion (called when user logs back in during recovery window)
+     */
+    public function cancelDeletion(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        Database::query(
+            "UPDATE users SET deletion_requested_at = NULL, deletion_scheduled_at = NULL WHERE id = ?",
+            [$userId]
+        );
+
+        // Log the cancellation
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::log('account_deletion_cancelled', 'user', $userId);
+        }
+
+        flash('success', 'Account deletion has been cancelled. Your account is safe.');
+        redirect('/profile');
+    }
+
+    /**
+     * Send deletion confirmation email
+     */
+    private function sendDeletionConfirmationEmail(array $user, int $days): void
+    {
+        if (!class_exists('Mailer')) {
+            return;
+        }
+
+        $scheduledDate = date('F j, Y', time() + ($days * 86400));
+
+        $subject = "Razor Library - Account Deletion Scheduled";
+        $body = "
+            <h2>Account Deletion Request</h2>
+            <p>Hello {$user['username']},</p>
+            <p>We've received your request to delete your Razor Library account.</p>
+
+            <h3>What happens next?</h3>
+            <ul>
+                <li>Your account and all associated data will be permanently deleted on <strong>{$scheduledDate}</strong></li>
+                <li>This includes all your razors, blades, brushes, other items, and images</li>
+                <li>This action cannot be undone after the scheduled date</li>
+            </ul>
+
+            <h3>Changed your mind?</h3>
+            <p>If you want to keep your account, simply log back in before {$scheduledDate} and click \"Cancel Deletion\" on the banner that appears.</p>
+
+            <h3>Need your data?</h3>
+            <p>If you haven't already, you can still log in and download a backup of your collection before the deletion date.</p>
+
+            <p>If you did not request this deletion, please contact the site administrator immediately.</p>
+        ";
+
+        Mailer::send($user['email'], $subject, $body);
+    }
+
+    /**
      * Download sample CSV template
      */
     public function downloadTemplate(): void
