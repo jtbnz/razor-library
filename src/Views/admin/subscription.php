@@ -60,7 +60,7 @@
 
                     <div class="form-group">
                         <label class="form-label">Webhook URL</label>
-                        <input type="text" class="form-input" value="<?= e(config('APP_URL') . '/webhooks/bmac') ?>" readonly>
+                        <input type="text" class="form-input" value="<?= e(config('APP_URL') . '/webhook/bmac') ?>" readonly>
                         <p class="form-hint">Configure this URL in your BMaC webhook settings.</p>
                     </div>
 

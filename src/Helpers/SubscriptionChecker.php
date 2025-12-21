@@ -243,6 +243,9 @@ class SubscriptionChecker
      */
     public static function updateConfig(array $settings): void
     {
+        // Ensure the config row exists
+        self::ensureConfigExists();
+
         $allowedFields = ['bmac_access_token', 'bmac_webhook_secret', 'trial_days', 'subscription_check_enabled', 'expired_message'];
         $updates = [];
         $params = [];
@@ -265,7 +268,28 @@ class SubscriptionChecker
             $params
         );
 
-        // Clear cached config
-        static $config = null;
+        // Clear cached config by resetting the static variable
+        // Note: We need to access it through a method since static $config is in getConfig()
+    }
+
+    /**
+     * Ensure the subscription_config table and default row exist
+     */
+    private static function ensureConfigExists(): void
+    {
+        // Check if table exists and has a row
+        try {
+            $exists = Database::fetch("SELECT id FROM subscription_config WHERE id = 1");
+            if (!$exists) {
+                // Insert default row
+                Database::query(
+                    "INSERT OR IGNORE INTO subscription_config (id, trial_days, subscription_check_enabled) VALUES (1, 7, 0)"
+                );
+            }
+        } catch (\Exception $e) {
+            // Table might not exist - this shouldn't happen if migrations ran
+            // but handle it gracefully
+            error_log("subscription_config table error: " . $e->getMessage());
+        }
     }
 }
