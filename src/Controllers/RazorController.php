@@ -18,6 +18,10 @@ class RazorController
     public function index(): void
     {
         $sort = $_GET['sort'] ?? 'name_asc';
+        $search = trim($_GET['q'] ?? '');
+        $filterCountry = $_GET['country'] ?? '';
+        $filterYearFrom = $_GET['year_from'] ?? '';
+        $filterYearTo = $_GET['year_to'] ?? '';
 
         $orderBy = match ($sort) {
             'name_desc' => 'name DESC',
@@ -25,15 +29,52 @@ class RazorController
             'date_desc' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(count), 0) FROM blade_usage WHERE razor_id = razors.id) DESC',
             'last_used' => 'last_used_at DESC NULLS LAST',
+            'year_asc' => 'year_manufactured ASC NULLS LAST',
+            'year_desc' => 'year_manufactured DESC NULLS LAST',
+            'country_asc' => 'country_manufactured ASC NULLS LAST',
+            'country_desc' => 'country_manufactured DESC NULLS LAST',
             default => 'name ASC',
         };
+
+        // Build query with filters
+        $where = ['r.user_id = ?', 'r.deleted_at IS NULL'];
+        $params = [$this->userId];
+
+        if ($search) {
+            $where[] = "(r.name LIKE ? OR r.brand LIKE ? OR r.description LIKE ? OR r.notes LIKE ?)";
+            $searchTerm = "%{$search}%";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if ($filterCountry) {
+            $where[] = "r.country_manufactured = ?";
+            $params[] = $filterCountry;
+        }
+
+        if ($filterYearFrom) {
+            $where[] = "r.year_manufactured >= ?";
+            $params[] = (int) $filterYearFrom;
+        }
+
+        if ($filterYearTo) {
+            $where[] = "r.year_manufactured <= ?";
+            $params[] = (int) $filterYearTo;
+        }
+
+        $whereClause = implode(' AND ', $where);
 
         $razors = Database::fetchAll(
             "SELECT r.*,
                     (SELECT COALESCE(SUM(count), 0) FROM blade_usage WHERE razor_id = r.id) as total_usage
              FROM razors r
-             WHERE r.user_id = ? AND r.deleted_at IS NULL
+             WHERE {$whereClause}
              ORDER BY {$orderBy}",
+            $params
+        );
+
+        // Get filter options
+        $countries = Database::fetchAll(
+            "SELECT DISTINCT country_manufactured FROM razors WHERE user_id = ? AND deleted_at IS NULL AND country_manufactured IS NOT NULL ORDER BY country_manufactured",
             [$this->userId]
         );
 
@@ -41,6 +82,13 @@ class RazorController
             'title' => 'Razors - Razor Library',
             'razors' => $razors,
             'sort' => $sort,
+            'search' => $search,
+            'filters' => [
+                'country' => $filterCountry,
+                'year_from' => $filterYearFrom,
+                'year_to' => $filterYearTo,
+            ],
+            'countries' => array_column($countries, 'country_manufactured'),
         ]);
     }
 
@@ -69,6 +117,8 @@ class RazorController
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $yearManufactured = trim($_POST['year_manufactured'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -77,10 +127,25 @@ class RazorController
             return;
         }
 
+        // Validate year if provided
+        if ($yearManufactured !== '') {
+            $year = (int) $yearManufactured;
+            $currentYear = (int) date('Y');
+            if ($year < 1800 || $year > $currentYear) {
+                flash('error', 'Year manufactured must be between 1800 and ' . $currentYear . '.');
+                set_old($_POST);
+                redirect('/razors/new');
+                return;
+            }
+            $yearManufactured = $year;
+        } else {
+            $yearManufactured = null;
+        }
+
         // Create razor first
         Database::query(
-            "INSERT INTO razors (user_id, brand, name, description, notes) VALUES (?, ?, ?, ?, ?)",
-            [$this->userId, $brand ?: null, $name, $description ?: null, $notes ?: null]
+            "INSERT INTO razors (user_id, brand, name, description, notes, year_manufactured, country_manufactured) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [$this->userId, $brand ?: null, $name, $description ?: null, $notes ?: null, $yearManufactured, $countryManufactured ?: null]
         );
 
         $razorId = Database::lastInsertId();
@@ -229,6 +294,8 @@ class RazorController
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $yearManufactured = trim($_POST['year_manufactured'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -236,9 +303,23 @@ class RazorController
             return;
         }
 
+        // Validate year if provided
+        if ($yearManufactured !== '') {
+            $year = (int) $yearManufactured;
+            $currentYear = (int) date('Y');
+            if ($year < 1800 || $year > $currentYear) {
+                flash('error', 'Year manufactured must be between 1800 and ' . $currentYear . '.');
+                redirect('/razors/' . $id . '/edit');
+                return;
+            }
+            $yearManufactured = $year;
+        } else {
+            $yearManufactured = null;
+        }
+
         Database::query(
-            "UPDATE razors SET brand = ?, name = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$brand ?: null, $name, $description ?: null, $notes ?: null, $razor['id']]
+            "UPDATE razors SET brand = ?, name = ?, description = ?, notes = ?, year_manufactured = ?, country_manufactured = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$brand ?: null, $name, $description ?: null, $notes ?: null, $yearManufactured, $countryManufactured ?: null, $razor['id']]
         );
 
         flash('success', 'Razor updated successfully.');

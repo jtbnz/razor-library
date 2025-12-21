@@ -2,6 +2,16 @@
 
 <div class="page-header">
     <h1>Administration</h1>
+    <div class="page-header-actions">
+        <a href="<?= url('/admin/requests') ?>" class="btn btn-outline">
+            Account Requests
+            <?php if ($pendingRequestCount > 0): ?>
+            <span class="badge badge-danger"><?= $pendingRequestCount ?></span>
+            <?php endif; ?>
+        </a>
+        <a href="<?= url('/admin/subscription') ?>" class="btn btn-outline">Subscription Settings</a>
+        <a href="<?= url('/admin/activity') ?>" class="btn btn-outline">Activity Log</a>
+    </div>
 </div>
 
 <!-- User Management Section -->

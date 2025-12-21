@@ -69,6 +69,7 @@ class AuthController
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
             RateLimiter::hit($ip, 'login');
+            ActivityLogger::logLoginFailed($email);
             flash('error', 'Invalid email or password.');
             set_old(['email' => $email]);
             redirect('/login');
@@ -78,10 +79,16 @@ class AuthController
         // Clear rate limit on successful login
         RateLimiter::clear($ip, 'login');
 
+        // Regenerate session ID to prevent session fixation attacks
+        session_regenerate_id(true);
+
         // Set session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['is_admin'] = (bool) $user['is_admin'];
+
+        // Log successful login
+        ActivityLogger::logLogin($user['id'], $user['email']);
 
         clear_old();
         redirect('/dashboard');
@@ -329,6 +336,9 @@ class AuthController
             "UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
             [password_hash($password, PASSWORD_BCRYPT), $user['id']]
         );
+
+        // Log password reset
+        ActivityLogger::log('password_reset', 'user', $user['id'], null, $user['id']);
 
         // Clear rate limit
         RateLimiter::clear($user['email'], 'password_reset');

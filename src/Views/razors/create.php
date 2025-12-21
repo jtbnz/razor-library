@@ -21,6 +21,20 @@
                        value="<?= e(old('name')) ?>" required>
             </div>
 
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="year_manufactured" class="form-label">Year Manufactured</label>
+                    <input type="number" id="year_manufactured" name="year_manufactured" class="form-input"
+                           value="<?= e(old('year_manufactured')) ?>" min="1800" max="<?= date('Y') ?>" placeholder="e.g., 1965">
+                </div>
+
+                <div class="form-group">
+                    <label for="country_manufactured" class="form-label">Country of Manufacture</label>
+                    <input type="text" id="country_manufactured" name="country_manufactured" class="form-input"
+                           value="<?= e(old('country_manufactured')) ?>" placeholder="e.g., Germany, USA, Japan">
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="images" class="form-label">Images</label>
                 <input type="file" id="images" name="images[]" class="form-input"

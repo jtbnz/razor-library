@@ -17,6 +17,16 @@ class Router
         $this->addRoute('POST', $path, $handler, $middleware);
     }
 
+    public function put(string $path, string $handler, array $middleware = []): void
+    {
+        $this->addRoute('PUT', $path, $handler, $middleware);
+    }
+
+    public function delete(string $path, string $handler, array $middleware = []): void
+    {
+        $this->addRoute('DELETE', $path, $handler, $middleware);
+    }
+
     private function addRoute(string $method, string $path, string $handler, array $middleware): void
     {
         // Convert path parameters to regex
@@ -81,7 +91,7 @@ class Router
             case 'admin':
                 if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
                     http_response_code(403);
-                    echo view('errors/403');
+                    require BASE_PATH . '/src/Views/errors/403.php';
                     return false;
                 }
                 return true;
@@ -89,6 +99,14 @@ class Router
             case 'guest':
                 if (isset($_SESSION['user_id'])) {
                     header('Location: ' . $basePath . '/dashboard');
+                    exit;
+                }
+                return true;
+
+            case 'subscription':
+                // Check subscription status (only if enabled)
+                if (SubscriptionChecker::isEnabled() && !SubscriptionChecker::hasValidSubscription()) {
+                    header('Location: ' . $basePath . '/subscription/expired');
                     exit;
                 }
                 return true;
@@ -131,6 +149,26 @@ class Router
     private function notFound(): void
     {
         http_response_code(404);
-        echo view('errors/404');
+        require BASE_PATH . '/src/Views/errors/404.php';
+        exit;
+    }
+
+    public static function forbidden(): void
+    {
+        http_response_code(403);
+        require BASE_PATH . '/src/Views/errors/403.php';
+        exit;
+    }
+
+    public static function error(int $code = 500): void
+    {
+        http_response_code($code);
+        $file = BASE_PATH . "/src/Views/errors/{$code}.php";
+        if (file_exists($file)) {
+            require $file;
+        } else {
+            require BASE_PATH . '/src/Views/errors/500.php';
+        }
+        exit;
     }
 }

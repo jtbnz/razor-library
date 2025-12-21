@@ -79,23 +79,32 @@ class ProfileController
             redirect('/profile');
         }
 
-        // Validate email if provided
-        if (!empty($email) && !is_valid_email($email)) {
-            flash('error', 'Please enter a valid email address.');
-            redirect('/profile');
-        }
+        // Validate email if provided and different from current
+        $emailChanged = false;
+        if (!empty($email) && $email !== $user['email']) {
+            if (!is_valid_email($email)) {
+                flash('error', 'Please enter a valid email address.');
+                redirect('/profile');
+            }
 
-        // Check if email is taken by another user
-        if (!empty($email)) {
+            // Check if email is taken by another user
             $existingEmail = Database::fetch(
-                "SELECT id FROM users WHERE email = ? AND id != ? AND deleted_at IS NULL",
-                [$email, $userId]
+                "SELECT id FROM users WHERE (email = ? OR pending_email = ?) AND id != ? AND deleted_at IS NULL",
+                [$email, $email, $userId]
             );
 
             if ($existingEmail) {
                 flash('error', 'Email is already in use.');
                 redirect('/profile');
             }
+
+            // Rate limit email changes (1 per hour)
+            if (RateLimiter::isLimited($userId, 'email_change', 1, 3600)) {
+                flash('error', 'You can only change your email once per hour. Please try again later.');
+                redirect('/profile');
+            }
+
+            $emailChanged = true;
         }
 
         // Handle password change
@@ -105,7 +114,7 @@ class ProfileController
                 redirect('/profile');
             }
 
-            if (!password_verify($currentPassword, $user['password'])) {
+            if (!password_verify($currentPassword, $user['password_hash'])) {
                 flash('error', 'Current password is incorrect.');
                 redirect('/profile');
             }
@@ -122,18 +131,104 @@ class ProfileController
 
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
             Database::query(
-                "UPDATE users SET password = ? WHERE id = ?",
+                "UPDATE users SET password_hash = ? WHERE id = ?",
                 [$hashedPassword, $userId]
             );
+
+            // Log password change
+            ActivityLogger::logPasswordChange($userId);
         }
 
-        // Update user
+        // Update username
         Database::query(
-            "UPDATE users SET username = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$username, $email ?: null, $userId]
+            "UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$username, $userId]
         );
 
-        flash('success', 'Profile updated successfully.');
+        // Handle email change with verification
+        if ($emailChanged) {
+            $token = generate_token(32);
+            $expires = date('Y-m-d H:i:s', time() + 86400); // 24 hours
+
+            Database::query(
+                "UPDATE users SET pending_email = ?, email_verification_token = ?, email_verification_expires = ? WHERE id = ?",
+                [$email, $token, $expires, $userId]
+            );
+
+            RateLimiter::hit($userId, 'email_change');
+
+            // Send verification email to NEW address
+            Mailer::sendEmailVerification($email, $user['username'], $token);
+
+            // Log email change initiation
+            ActivityLogger::log('email_change_initiated', 'user', $userId, ['new_email' => $email]);
+
+            flash('success', 'Profile updated. Please check your new email address for a verification link.');
+        } else {
+            flash('success', 'Profile updated successfully.');
+        }
+
+        redirect('/profile');
+    }
+
+    /**
+     * Verify email change
+     */
+    public function verifyEmail(string $token): void
+    {
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE email_verification_token = ? AND email_verification_expires > CURRENT_TIMESTAMP AND deleted_at IS NULL",
+            [$token]
+        );
+
+        if (!$user) {
+            flash('error', 'Invalid or expired verification link. Please request a new one from your profile.');
+            redirect('/login');
+            return;
+        }
+
+        $oldEmail = $user['email'];
+        $newEmail = $user['pending_email'];
+
+        // Update email and clear verification fields
+        Database::query(
+            "UPDATE users SET email = ?, pending_email = NULL, email_verification_token = NULL, email_verification_expires = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$newEmail, $user['id']]
+        );
+
+        // Log email change completion
+        ActivityLogger::log('email_changed', 'user', $user['id'], ['old_email' => $oldEmail, 'new_email' => $newEmail], $user['id']);
+
+        // Notify old email about the change (security alert)
+        if ($oldEmail) {
+            Mailer::sendEmailChangedNotification($oldEmail, $user['username'], $newEmail);
+        }
+
+        flash('success', 'Your email address has been successfully updated.');
+        redirect('/profile');
+    }
+
+    /**
+     * Cancel pending email change
+     */
+    public function cancelEmailChange(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        Database::query(
+            "UPDATE users SET pending_email = NULL, email_verification_token = NULL, email_verification_expires = NULL WHERE id = ?",
+            [$userId]
+        );
+
+        // Log cancellation
+        ActivityLogger::log('email_change_cancelled', 'user', $userId);
+
+        flash('success', 'Pending email change has been cancelled.');
         redirect('/profile');
     }
 
@@ -637,7 +732,8 @@ class ProfileController
         $file = $_FILES['csv_file'];
 
         // Validate file type
-        $mimeType = mime_content_type($file['tmp_name']);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
         if (!in_array($mimeType, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'])) {
             flash('error', 'Please upload a valid CSV file.');
             redirect('/profile');
@@ -873,6 +969,204 @@ class ProfileController
         );
 
         return true;
+    }
+
+    /**
+     * Show email preferences page
+     */
+    public function showEmailPreferences(): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT email_trial_warnings, email_renewal_reminders, email_account_updates, email_marketing
+             FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        return view('profile/email-preferences', [
+            'preferences' => $user,
+        ]);
+    }
+
+    /**
+     * Update email preferences
+     */
+    public function updateEmailPreferences(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile/email-preferences');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $emailTrialWarnings = isset($_POST['email_trial_warnings']) ? 1 : 0;
+        $emailRenewalReminders = isset($_POST['email_renewal_reminders']) ? 1 : 0;
+        $emailAccountUpdates = isset($_POST['email_account_updates']) ? 1 : 0;
+        $emailMarketing = isset($_POST['email_marketing']) ? 1 : 0;
+
+        Database::query(
+            "UPDATE users SET email_trial_warnings = ?, email_renewal_reminders = ?, email_account_updates = ?, email_marketing = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$emailTrialWarnings, $emailRenewalReminders, $emailAccountUpdates, $emailMarketing, $userId]
+        );
+
+        // Log the change
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::logProfileUpdate($userId, ['email_preferences_updated' => true]);
+        }
+
+        flash('success', 'Email preferences updated.');
+        redirect('/profile/email-preferences');
+    }
+
+    /**
+     * Show account deletion confirmation page
+     */
+    public function showDelete(): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        // Get collection stats for warning
+        $stats = [
+            'razors' => Database::fetch("SELECT COUNT(*) as count FROM razors WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'blades' => Database::fetch("SELECT COUNT(*) as count FROM blades WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'brushes' => Database::fetch("SELECT COUNT(*) as count FROM brushes WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+            'other' => Database::fetch("SELECT COUNT(*) as count FROM other_items WHERE user_id = ? AND deleted_at IS NULL", [$userId])['count'],
+        ];
+
+        return view('profile/delete', [
+            'user' => $user,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Request account deletion
+     */
+    public function requestDeletion(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile/delete');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        // Verify confirmation text
+        $confirmText = trim($_POST['confirm_text'] ?? '');
+        if ($confirmText !== 'DELETE MY ACCOUNT') {
+            flash('error', 'Please type "DELETE MY ACCOUNT" exactly to confirm.');
+            redirect('/profile/delete');
+        }
+
+        // Set deletion schedule (30 days from now)
+        $deletionDays = config('DELETION_RECOVERY_DAYS', 30);
+        Database::query(
+            "UPDATE users SET deletion_requested_at = CURRENT_TIMESTAMP, deletion_scheduled_at = datetime('now', '+' || ? || ' days') WHERE id = ?",
+            [$deletionDays, $userId]
+        );
+
+        // Log the deletion request
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::log('account_deletion_requested', 'user', $userId, [
+                'scheduled_for' => date('Y-m-d H:i:s', time() + ($deletionDays * 86400)),
+            ]);
+        }
+
+        // Send confirmation email
+        $this->sendDeletionConfirmationEmail($user, $deletionDays);
+
+        // Log the user out
+        session_destroy();
+        session_start();
+
+        flash('success', "Your account has been scheduled for deletion. You have {$deletionDays} days to recover it by logging back in.");
+        redirect('/login');
+    }
+
+    /**
+     * Cancel account deletion (called when user logs back in during recovery window)
+     */
+    public function cancelDeletion(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        Database::query(
+            "UPDATE users SET deletion_requested_at = NULL, deletion_scheduled_at = NULL WHERE id = ?",
+            [$userId]
+        );
+
+        // Log the cancellation
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::log('account_deletion_cancelled', 'user', $userId);
+        }
+
+        flash('success', 'Account deletion has been cancelled. Your account is safe.');
+        redirect('/profile');
+    }
+
+    /**
+     * Send deletion confirmation email
+     */
+    private function sendDeletionConfirmationEmail(array $user, int $days): void
+    {
+        if (!class_exists('Mailer')) {
+            return;
+        }
+
+        $scheduledDate = date('F j, Y', time() + ($days * 86400));
+
+        $subject = "Razor Library - Account Deletion Scheduled";
+        $body = "
+            <h2>Account Deletion Request</h2>
+            <p>Hello {$user['username']},</p>
+            <p>We've received your request to delete your Razor Library account.</p>
+
+            <h3>What happens next?</h3>
+            <ul>
+                <li>Your account and all associated data will be permanently deleted on <strong>{$scheduledDate}</strong></li>
+                <li>This includes all your razors, blades, brushes, other items, and images</li>
+                <li>This action cannot be undone after the scheduled date</li>
+            </ul>
+
+            <h3>Changed your mind?</h3>
+            <p>If you want to keep your account, simply log back in before {$scheduledDate} and click \"Cancel Deletion\" on the banner that appears.</p>
+
+            <h3>Need your data?</h3>
+            <p>If you haven't already, you can still log in and download a backup of your collection before the deletion date.</p>
+
+            <p>If you did not request this deletion, please contact the site administrator immediately.</p>
+        ";
+
+        Mailer::send($user['email'], $subject, $body);
     }
 
     /**

@@ -17,6 +17,20 @@
         <input type="text" id="name" name="name" class="form-input" value="<?= e($razor['name']) ?>" required>
     </div>
 
+    <div class="form-row">
+        <div class="form-group">
+            <label for="year_manufactured" class="form-label">Year Manufactured</label>
+            <input type="number" id="year_manufactured" name="year_manufactured" class="form-input"
+                   value="<?= e($razor['year_manufactured'] ?? '') ?>" min="1800" max="<?= date('Y') ?>" placeholder="e.g., 1965">
+        </div>
+
+        <div class="form-group">
+            <label for="country_manufactured" class="form-label">Country of Manufacture</label>
+            <input type="text" id="country_manufactured" name="country_manufactured" class="form-input"
+                   value="<?= e($razor['country_manufactured'] ?? '') ?>" placeholder="e.g., Germany, USA, Japan">
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="description" class="form-label">Description</label>
         <textarea id="description" name="description" class="form-input" rows="3"><?= e($razor['description'] ?? '') ?></textarea>

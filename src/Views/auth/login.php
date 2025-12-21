@@ -38,6 +38,14 @@ ob_start();
         <div class="auth-links">
             <a href="<?= url('/forgot-password') ?>">Forgot your password?</a>
         </div>
+
+        <div class="auth-divider">
+            <span>or</span>
+        </div>
+
+        <div class="auth-links">
+            <a href="<?= url('/request-account') ?>" class="btn btn-outline btn-block">Request an Account</a>
+        </div>
     </div>
 </div>
 

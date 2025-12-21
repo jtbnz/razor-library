@@ -4,6 +4,17 @@
     <h1>My Profile</h1>
 </div>
 
+<?php if (!empty($user['deletion_scheduled_at'])): ?>
+<div class="alert alert-danger mb-4">
+    <strong>Account Scheduled for Deletion</strong>
+    <p class="mb-2">Your account is scheduled for permanent deletion on <?= format_date($user['deletion_scheduled_at']) ?>.</p>
+    <form action="<?= url('/profile/cancel-deletion') ?>" method="POST" style="display: inline;">
+        <?= csrf_field() ?>
+        <button type="submit" class="btn btn-outline">Cancel Deletion</button>
+    </form>
+</div>
+<?php endif; ?>
+
 <div class="grid-2">
     <div>
         <!-- Profile Form -->
@@ -23,7 +34,17 @@
                     <div class="form-group">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" id="email" name="email" class="form-input" value="<?= e($user['email'] ?? '') ?>" placeholder="your@email.com">
-                        <p class="form-hint">Used for password reset only.</p>
+                        <p class="form-hint">Used for password reset and notifications.</p>
+                        <?php if (!empty($user['pending_email'])): ?>
+                        <div class="alert alert-info mt-2">
+                            <strong>Pending email change:</strong> <?= e($user['pending_email']) ?>
+                            <br><small>Please check your new email address for a verification link.</small>
+                            <form action="<?= url('/profile/cancel-email-change') ?>" method="POST" style="display: inline;">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm btn-outline mt-2">Cancel Change</button>
+                            </form>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <hr class="my-4">
@@ -117,8 +138,30 @@
             </div>
         </div>
 
+        <!-- API Access -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>API Access</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Create API keys to access your collection programmatically via our REST API.</p>
+                <a href="<?= url('/profile/api-keys') ?>" class="btn btn-outline">Manage API Keys</a>
+            </div>
+        </div>
+
+        <!-- Email Preferences -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Email Preferences</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Control which emails you receive from Razor Library.</p>
+                <a href="<?= url('/profile/email-preferences') ?>" class="btn btn-outline">Manage Email Preferences</a>
+            </div>
+        </div>
+
         <!-- Import CSV -->
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h3>Import from CSV</h3>
             </div>
@@ -179,6 +222,17 @@
                         </p>
                     </div>
                 </details>
+            </div>
+        </div>
+
+        <!-- Delete Account -->
+        <div class="card border-danger">
+            <div class="card-header">
+                <h3>Delete Account</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Permanently delete your account and all associated data. This action has a 30-day recovery window.</p>
+                <a href="<?= url('/profile/delete') ?>" class="btn btn-outline">Delete My Account</a>
             </div>
         </div>
     </div>

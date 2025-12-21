@@ -12,26 +12,58 @@ class BladeController
     {
         $userId = $_SESSION['user_id'];
         $sort = $_GET['sort'] ?? 'name';
+        $search = trim($_GET['q'] ?? '');
+        $filterCountry = $_GET['country'] ?? '';
 
         $orderBy = match ($sort) {
             'date' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(bu.count), 0) FROM blade_usage bu WHERE bu.blade_id = blades.id) DESC',
             'last_used' => 'last_used_at DESC NULLS LAST',
+            'country_asc' => 'country_manufactured ASC NULLS LAST',
+            'country_desc' => 'country_manufactured DESC NULLS LAST',
             default => 'name ASC',
         };
+
+        // Build query with filters
+        $where = ['user_id = ?', 'deleted_at IS NULL'];
+        $params = [$userId];
+
+        if ($search) {
+            $where[] = "(name LIKE ? OR brand LIKE ? OR description LIKE ? OR notes LIKE ?)";
+            $searchTerm = "%{$search}%";
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        }
+
+        if ($filterCountry) {
+            $where[] = "country_manufactured = ?";
+            $params[] = $filterCountry;
+        }
+
+        $whereClause = implode(' AND ', $where);
 
         $blades = Database::fetchAll(
             "SELECT blades.*,
                     (SELECT COALESCE(SUM(bu.count), 0) FROM blade_usage bu WHERE bu.blade_id = blades.id) as total_usage
              FROM blades
-             WHERE user_id = ? AND deleted_at IS NULL
+             WHERE {$whereClause}
              ORDER BY {$orderBy}",
+            $params
+        );
+
+        // Get filter options
+        $countries = Database::fetchAll(
+            "SELECT DISTINCT country_manufactured FROM blades WHERE user_id = ? AND deleted_at IS NULL AND country_manufactured IS NOT NULL ORDER BY country_manufactured",
             [$userId]
         );
 
         return view('blades/index', [
             'blades' => $blades,
             'sort' => $sort,
+            'search' => $search,
+            'filters' => [
+                'country' => $filterCountry,
+            ],
+            'countries' => array_column($countries, 'country_manufactured'),
         ]);
     }
 
@@ -57,6 +89,7 @@ class BladeController
         $brand = trim($_POST['brand'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -68,8 +101,8 @@ class BladeController
 
         // Create blade first
         Database::query(
-            "INSERT INTO blades (user_id, name, brand, description, notes) VALUES (?, ?, ?, ?, ?)",
-            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null]
+            "INSERT INTO blades (user_id, name, brand, description, notes, country_manufactured) VALUES (?, ?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null, $countryManufactured ?: null]
         );
 
         $bladeId = Database::lastInsertId();
@@ -231,6 +264,7 @@ class BladeController
         $brand = trim($_POST['brand'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -238,8 +272,8 @@ class BladeController
         }
 
         Database::query(
-            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $brand ?: null, $description ?: null, $notes ?: null, $id]
+            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, country_manufactured = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$name, $brand ?: null, $description ?: null, $notes ?: null, $countryManufactured ?: null, $id]
         );
 
         flash('success', 'Blade updated successfully.');

@@ -6,6 +6,59 @@
 class AdminController
 {
     /**
+     * View activity log
+     */
+    public function activity(): string
+    {
+        if (!is_admin()) {
+            http_response_code(403);
+            return view('errors/403');
+        }
+
+        $page = max(1, intval($_GET['page'] ?? 1));
+        $action = $_GET['action'] ?? null;
+        $userId = $_GET['user_id'] ?? null;
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo = $_GET['date_to'] ?? null;
+        $search = $_GET['search'] ?? null;
+
+        $activities = ActivityLogger::getActivities(
+            $page,
+            50,
+            $action ?: null,
+            $userId ? intval($userId) : null,
+            $dateFrom ?: null,
+            $dateTo ?: null,
+            $search ?: null
+        );
+
+        $actionTypes = ActivityLogger::getActionTypes();
+
+        // Get users for filter dropdown
+        $users = Database::fetchAll(
+            "SELECT id, username, email FROM users WHERE deleted_at IS NULL ORDER BY username"
+        );
+
+        return view('admin/activity', [
+            'activities' => $activities['data'],
+            'pagination' => [
+                'page' => $activities['page'],
+                'totalPages' => $activities['totalPages'],
+                'total' => $activities['total'],
+            ],
+            'filters' => [
+                'action' => $action,
+                'user_id' => $userId,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'search' => $search,
+            ],
+            'actionTypes' => $actionTypes,
+            'users' => $users,
+        ]);
+    }
+
+    /**
      * Admin dashboard - list all users
      */
     public function index(): string
@@ -50,10 +103,16 @@ class AdminController
             }
         }
 
+        // Get pending request count
+        $pendingRequestCount = Database::fetch(
+            "SELECT COUNT(*) as count FROM account_requests WHERE status = 'pending'"
+        )['count'] ?? 0;
+
         return view('admin/index', [
             'users' => $users,
             'lastBackup' => $lastBackup,
             'backups' => $backups,
+            'pendingRequestCount' => $pendingRequestCount,
         ]);
     }
 
@@ -141,9 +200,13 @@ class AdminController
         $shareToken = generate_token(16);
 
         Database::query(
-            "INSERT INTO users (username, email, password, is_admin, share_token) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO users (username, email, password_hash, is_admin, share_token) VALUES (?, ?, ?, ?, ?)",
             [$username, $email ?: null, $hashedPassword, $isAdmin, $shareToken]
         );
+
+        // Log user creation
+        $newUserId = Database::lastInsertId();
+        ActivityLogger::logUserCreated($newUserId, $email ?: $username, $_SESSION['user_id']);
 
         clear_old();
         flash('success', 'User created successfully.');
@@ -257,7 +320,7 @@ class AdminController
 
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             Database::query(
-                "UPDATE users SET username = ?, email = ?, password = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                "UPDATE users SET username = ?, email = ?, password_hash = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 [$username, $email ?: null, $hashedPassword, $isAdmin, $id]
             );
         } else {
@@ -308,6 +371,9 @@ class AdminController
             [$id]
         );
 
+        // Log user deletion
+        ActivityLogger::logUserDeleted($id, $user['email'] ?? $user['username'], $_SESSION['user_id']);
+
         flash('success', 'User deleted successfully.');
         redirect('/admin');
     }
@@ -357,6 +423,9 @@ class AdminController
         $this->addDirectoryToZip($zip, $uploadPath, 'uploads', ['backups']);
 
         $zip->close();
+
+        // Log backup creation
+        ActivityLogger::logAdminAction('backup_created', null, null, ['filename' => $backupFilename]);
 
         flash('success', 'Backup created successfully: ' . $backupFilename);
         redirect('/admin');

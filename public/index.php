@@ -66,8 +66,24 @@ require_once BASE_PATH . '/src/Helpers/functions.php';
 require_once BASE_PATH . '/src/Helpers/Database.php';
 Database::init();
 
-// Start session
+// Set security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-ancestors 'none';");
+
+// Start session with secure settings
 session_name(config('SESSION_NAME'));
+$secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+session_set_cookie_params([
+    'lifetime' => config('SESSION_LIFETIME', 86400),
+    'path' => config('APP_BASE_PATH', '/') ?: '/',
+    'domain' => '',
+    'secure' => $secure,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 // Initialize CSRF token if not set
@@ -184,9 +200,17 @@ $router->post('/profile/regenerate-share-token', 'ProfileController@regenerateSh
 $router->get('/profile/export', 'ProfileController@export', ['auth']);
 $router->post('/profile/import-csv', 'ProfileController@importCsv', ['auth']);
 $router->get('/profile/csv-template', 'ProfileController@downloadTemplate', ['auth']);
+$router->get('/verify-email/{token}', 'ProfileController@verifyEmail');
+$router->post('/profile/cancel-email-change', 'ProfileController@cancelEmailChange', ['auth']);
+$router->get('/profile/email-preferences', 'ProfileController@showEmailPreferences', ['auth']);
+$router->post('/profile/email-preferences', 'ProfileController@updateEmailPreferences', ['auth']);
+$router->get('/profile/delete', 'ProfileController@showDelete', ['auth']);
+$router->post('/profile/delete', 'ProfileController@requestDeletion', ['auth']);
+$router->post('/profile/cancel-deletion', 'ProfileController@cancelDeletion', ['auth']);
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);
+$router->get('/admin/activity', 'AdminController@activity', ['auth', 'admin']);
 $router->get('/admin/users/new', 'AdminController@create', ['auth', 'admin']);
 $router->post('/admin/users', 'AdminController@store', ['auth', 'admin']);
 $router->get('/admin/users/{id}/edit', 'AdminController@edit', ['auth', 'admin']);
@@ -199,6 +223,55 @@ $router->get('/admin/backup/{filename}/download', 'AdminController@downloadBacku
 $router->post('/admin/backup/{filename}/delete', 'AdminController@deleteBackup', ['auth', 'admin']);
 $router->post('/admin/restore', 'AdminController@restore', ['auth', 'admin']);
 $router->post('/admin/reset-database', 'AdminController@resetDatabase', ['auth', 'admin']);
+
+// Admin subscription management
+$router->get('/admin/subscription', 'SubscriptionController@settings', ['auth', 'admin']);
+$router->post('/admin/subscription', 'SubscriptionController@updateSettings', ['auth', 'admin']);
+$router->post('/admin/users/{id}/subscription', 'SubscriptionController@updateUserSubscription', ['auth', 'admin']);
+
+// Subscription pages
+$router->get('/subscription/expired', 'SubscriptionController@expired', ['auth']);
+
+// Webhooks (no auth required)
+$router->post('/webhooks/bmac', 'WebhookController@bmac');
+
+// Legal pages (public)
+$router->get('/terms', 'LegalController@terms');
+
+// Account requests (public form, admin management)
+$router->get('/request-account', 'AccountRequestController@create', ['guest']);
+$router->post('/request-account', 'AccountRequestController@store', ['guest']);
+$router->get('/admin/requests', 'AccountRequestController@pending', ['auth', 'admin']);
+$router->post('/admin/requests/{id}/approve', 'AccountRequestController@approve', ['auth', 'admin']);
+$router->post('/admin/requests/{id}/reject', 'AccountRequestController@reject', ['auth', 'admin']);
+
+// API Key Management
+$router->get('/profile/api-keys', 'ApiKeyController@index', ['auth']);
+$router->post('/profile/api-keys', 'ApiKeyController@create', ['auth']);
+$router->post('/profile/api-keys/{id}/revoke', 'ApiKeyController@revoke', ['auth']);
+
+// REST API Endpoints
+$router->get('/api/stats', 'ApiController@getStats');
+$router->get('/api/razors', 'ApiController@listRazors');
+$router->get('/api/razors/{id}', 'ApiController@getRazor');
+$router->post('/api/razors', 'ApiController@createRazor');
+$router->put('/api/razors/{id}', 'ApiController@updateRazor');
+$router->delete('/api/razors/{id}', 'ApiController@deleteRazor');
+$router->get('/api/blades', 'ApiController@listBlades');
+$router->get('/api/blades/{id}', 'ApiController@getBlade');
+$router->post('/api/blades', 'ApiController@createBlade');
+$router->put('/api/blades/{id}', 'ApiController@updateBlade');
+$router->delete('/api/blades/{id}', 'ApiController@deleteBlade');
+$router->get('/api/brushes', 'ApiController@listBrushes');
+$router->get('/api/brushes/{id}', 'ApiController@getBrush');
+$router->post('/api/brushes', 'ApiController@createBrush');
+$router->put('/api/brushes/{id}', 'ApiController@updateBrush');
+$router->delete('/api/brushes/{id}', 'ApiController@deleteBrush');
+$router->get('/api/other', 'ApiController@listOtherItems');
+$router->get('/api/other/{id}', 'ApiController@getOtherItem');
+$router->post('/api/other', 'ApiController@createOtherItem');
+$router->put('/api/other/{id}', 'ApiController@updateOtherItem');
+$router->delete('/api/other/{id}', 'ApiController@deleteOtherItem');
 
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);
