@@ -126,10 +126,13 @@ function flash(string $key, string $message): void
     $_SESSION['flash'][$key] = $message;
 }
 
-function get_flash(string $key): ?string
+function get_flash(string $key, bool $escape = true): ?string
 {
     $message = $_SESSION['flash'][$key] ?? null;
     unset($_SESSION['flash'][$key]);
+    if ($message !== null && $escape) {
+        return htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+    }
     return $message;
 }
 

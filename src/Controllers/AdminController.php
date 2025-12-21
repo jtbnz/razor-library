@@ -141,7 +141,7 @@ class AdminController
         $shareToken = generate_token(16);
 
         Database::query(
-            "INSERT INTO users (username, email, password, is_admin, share_token) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO users (username, email, password_hash, is_admin, share_token) VALUES (?, ?, ?, ?, ?)",
             [$username, $email ?: null, $hashedPassword, $isAdmin, $shareToken]
         );
 
@@ -257,7 +257,7 @@ class AdminController
 
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             Database::query(
-                "UPDATE users SET username = ?, email = ?, password = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                "UPDATE users SET username = ?, email = ?, password_hash = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 [$username, $email ?: null, $hashedPassword, $isAdmin, $id]
             );
         } else {

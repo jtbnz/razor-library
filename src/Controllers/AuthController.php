@@ -78,6 +78,9 @@ class AuthController
         // Clear rate limit on successful login
         RateLimiter::clear($ip, 'login');
 
+        // Regenerate session ID to prevent session fixation attacks
+        session_regenerate_id(true);
+
         // Set session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];

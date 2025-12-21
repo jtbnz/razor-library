@@ -105,7 +105,7 @@ class ProfileController
                 redirect('/profile');
             }
 
-            if (!password_verify($currentPassword, $user['password'])) {
+            if (!password_verify($currentPassword, $user['password_hash'])) {
                 flash('error', 'Current password is incorrect.');
                 redirect('/profile');
             }
@@ -122,7 +122,7 @@ class ProfileController
 
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
             Database::query(
-                "UPDATE users SET password = ? WHERE id = ?",
+                "UPDATE users SET password_hash = ? WHERE id = ?",
                 [$hashedPassword, $userId]
             );
         }
@@ -637,7 +637,8 @@ class ProfileController
         $file = $_FILES['csv_file'];
 
         // Validate file type
-        $mimeType = mime_content_type($file['tmp_name']);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
         if (!in_array($mimeType, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'])) {
             flash('error', 'Please upload a valid CSV file.');
             redirect('/profile');
