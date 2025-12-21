@@ -219,5 +219,13 @@ $router->post('/admin/backup/{filename}/delete', 'AdminController@deleteBackup',
 $router->post('/admin/restore', 'AdminController@restore', ['auth', 'admin']);
 $router->post('/admin/reset-database', 'AdminController@resetDatabase', ['auth', 'admin']);
 
+// Admin subscription management
+$router->get('/admin/subscription', 'SubscriptionController@settings', ['auth', 'admin']);
+$router->post('/admin/subscription', 'SubscriptionController@updateSettings', ['auth', 'admin']);
+$router->post('/admin/users/{id}/subscription', 'SubscriptionController@updateUserSubscription', ['auth', 'admin']);
+
+// Subscription pages
+$router->get('/subscription/expired', 'SubscriptionController@expired', ['auth']);
+
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);

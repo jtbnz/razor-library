@@ -93,6 +93,14 @@ class Router
                 }
                 return true;
 
+            case 'subscription':
+                // Check subscription status (only if enabled)
+                if (SubscriptionChecker::isEnabled() && !SubscriptionChecker::hasValidSubscription()) {
+                    header('Location: ' . $basePath . '/subscription/expired');
+                    exit;
+                }
+                return true;
+
             default:
                 return true;
         }
