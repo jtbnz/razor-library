@@ -277,19 +277,20 @@ class SubscriptionChecker
      */
     private static function ensureConfigExists(): void
     {
-        // Check if table exists and has a row
-        try {
-            $exists = Database::fetch("SELECT id FROM subscription_config WHERE id = 1");
-            if (!$exists) {
-                // Insert default row
-                Database::query(
-                    "INSERT OR IGNORE INTO subscription_config (id, trial_days, subscription_check_enabled) VALUES (1, 7, 0)"
-                );
-            }
-        } catch (\Exception $e) {
-            // Table might not exist - this shouldn't happen if migrations ran
-            // but handle it gracefully
-            error_log("subscription_config table error: " . $e->getMessage());
-        }
+        // First, ensure the table exists
+        Database::connection()->exec("CREATE TABLE IF NOT EXISTS subscription_config (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            bmac_access_token TEXT,
+            bmac_webhook_secret TEXT,
+            trial_days INTEGER DEFAULT 7,
+            subscription_check_enabled INTEGER DEFAULT 0,
+            expired_message TEXT DEFAULT 'Your trial has expired. Subscribe to continue using Razor Library.',
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // Then ensure the default row exists
+        Database::query(
+            "INSERT OR IGNORE INTO subscription_config (id, trial_days, subscription_check_enabled) VALUES (1, 7, 0)"
+        );
     }
 }
