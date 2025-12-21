@@ -154,6 +154,9 @@ class Database
                 foreach ($sql as $query) {
                     self::$pdo->exec($query);
                 }
+            } elseif (is_callable($sql)) {
+                // Callable migrations receive PDO instance for complex logic
+                $sql(self::$pdo);
             }
 
             // Record the migration
