@@ -13,7 +13,7 @@ class WebhookController
     {
         // Get raw request body
         $payload = file_get_contents('php://input');
-        $signature = $_SERVER['HTTP_X_BMAC_SIGNATURE'] ?? '';
+        $signature = $_SERVER['HTTP_X_BMC_SIGNATURE'] ?? '';
 
         // Log the incoming webhook
         $this->logWebhook('bmac', $payload, $signature);
