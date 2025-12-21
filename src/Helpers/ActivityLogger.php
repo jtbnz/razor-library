@@ -6,6 +6,37 @@
 
 class ActivityLogger
 {
+    private static bool $tableChecked = false;
+
+    /**
+     * Ensure the activity_log table exists
+     */
+    private static function ensureTableExists(): void
+    {
+        if (self::$tableChecked) {
+            return;
+        }
+
+        Database::connection()->exec("CREATE TABLE IF NOT EXISTS activity_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            action TEXT NOT NULL,
+            target_type TEXT,
+            target_id INTEGER,
+            details TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        )");
+
+        Database::connection()->exec("CREATE INDEX IF NOT EXISTS idx_activity_log_user_id ON activity_log(user_id)");
+        Database::connection()->exec("CREATE INDEX IF NOT EXISTS idx_activity_log_action ON activity_log(action)");
+        Database::connection()->exec("CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at)");
+
+        self::$tableChecked = true;
+    }
+
     /**
      * Log an activity
      *
@@ -22,6 +53,8 @@ class ActivityLogger
         ?array $details = null,
         ?int $userId = null
     ): void {
+        self::ensureTableExists();
+
         // Use session user if not specified
         if ($userId === null && isset($_SESSION['user_id'])) {
             $userId = $_SESSION['user_id'];
