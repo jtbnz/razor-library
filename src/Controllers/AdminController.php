@@ -103,10 +103,16 @@ class AdminController
             }
         }
 
+        // Get pending request count
+        $pendingRequestCount = Database::fetch(
+            "SELECT COUNT(*) as count FROM account_requests WHERE status = 'pending'"
+        )['count'] ?? 0;
+
         return view('admin/index', [
             'users' => $users,
             'lastBackup' => $lastBackup,
             'backups' => $backups,
+            'pendingRequestCount' => $pendingRequestCount,
         ]);
     }
 

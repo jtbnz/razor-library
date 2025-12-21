@@ -233,5 +233,12 @@ $router->post('/webhooks/bmac', 'WebhookController@bmac');
 // Legal pages (public)
 $router->get('/terms', 'LegalController@terms');
 
+// Account requests (public form, admin management)
+$router->get('/request-account', 'AccountRequestController@create', ['guest']);
+$router->post('/request-account', 'AccountRequestController@store', ['guest']);
+$router->get('/admin/requests', 'AccountRequestController@pending', ['auth', 'admin']);
+$router->post('/admin/requests/{id}/approve', 'AccountRequestController@approve', ['auth', 'admin']);
+$router->post('/admin/requests/{id}/reject', 'AccountRequestController@reject', ['auth', 'admin']);
+
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);
