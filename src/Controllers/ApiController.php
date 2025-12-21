@@ -9,6 +9,14 @@ class ApiController
     private ?array $user = null;
 
     /**
+     * Display API documentation page
+     */
+    public function docs(): void
+    {
+        require BASE_PATH . '/src/Views/api/docs.php';
+    }
+
+    /**
      * Authenticate via API key
      */
     private function authenticate(): bool

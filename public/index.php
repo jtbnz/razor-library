@@ -251,6 +251,7 @@ $router->post('/profile/api-keys', 'ApiKeyController@create', ['auth']);
 $router->post('/profile/api-keys/{id}/revoke', 'ApiKeyController@revoke', ['auth']);
 
 // REST API Endpoints
+$router->get('/api/docs', 'ApiController@docs');
 $router->get('/api/stats', 'ApiController@getStats');
 $router->get('/api/razors', 'ApiController@listRazors');
 $router->get('/api/razors/{id}', 'ApiController@getRazor');

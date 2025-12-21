@@ -46,6 +46,10 @@ ob_start();
         <div class="auth-links">
             <a href="<?= url('/request-account') ?>" class="btn btn-outline btn-block">Request an Account</a>
         </div>
+
+        <p class="text-center text-muted mt-3" style="font-size: 0.875rem;">
+            Support the project on <a href="https://buymeacoffee.com/jonjones" target="_blank" rel="noopener">Buy Me a Coffee</a>
+        </p>
     </div>
 </div>
 
