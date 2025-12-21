@@ -1,0 +1,824 @@
+{
+  "name": "Razor Library v2 Test Plan",
+  "version": "2.0.0",
+  "description": "Comprehensive test suite for v2 features - designed for automated agent execution",
+  "setup": {
+    "commands": [
+      "php scripts/reset-database.php --force",
+      "php scripts/create-user.php testadmin admin@test.local TestPass123! --admin",
+      "php scripts/create-user.php testuser user@test.local TestPass123!",
+      "php scripts/create-user.php trialuser trial@test.local TestPass123!"
+    ],
+    "server": {
+      "command": "php -S localhost:8080 -t public",
+      "port": 8080,
+      "wait_for_ready": true
+    },
+    "test_data": {
+      "admin": {
+        "username": "testadmin",
+        "email": "admin@test.local",
+        "password": "TestPass123!"
+      },
+      "regular": {
+        "username": "testuser",
+        "email": "user@test.local",
+        "password": "TestPass123!"
+      },
+      "trial": {
+        "username": "trialuser",
+        "email": "trial@test.local",
+        "password": "TestPass123!"
+      }
+    }
+  },
+  "categories": [
+    {
+      "id": "auth",
+      "name": "Authentication & Security",
+      "priority": 1,
+      "run_first": true
+    },
+    {
+      "id": "account-requests",
+      "name": "Account Requests",
+      "priority": 2
+    },
+    {
+      "id": "subscription",
+      "name": "Subscription System",
+      "priority": 3
+    },
+    {
+      "id": "deletion",
+      "name": "Account Deletion",
+      "priority": 3
+    },
+    {
+      "id": "api",
+      "name": "REST API",
+      "priority": 3
+    },
+    {
+      "id": "fields",
+      "name": "New Item Fields",
+      "priority": 3
+    },
+    {
+      "id": "search",
+      "name": "Search & Filtering",
+      "priority": 3
+    },
+    {
+      "id": "email-prefs",
+      "name": "Email Preferences",
+      "priority": 3
+    },
+    {
+      "id": "email-change",
+      "name": "Email Change Verification",
+      "priority": 3
+    },
+    {
+      "id": "activity-log",
+      "name": "Activity Logging",
+      "priority": 3
+    },
+    {
+      "id": "error-pages",
+      "name": "Error Pages",
+      "priority": 4
+    },
+    {
+      "id": "regression",
+      "name": "Regression Tests",
+      "priority": 5,
+      "run_last": true
+    }
+  ],
+  "tests": [
+    {
+      "id": "TEST-AUTH-001",
+      "category": "auth",
+      "name": "Login rate limiting",
+      "description": "Verify that login is blocked after 5 failed attempts",
+      "preconditions": ["user_exists:user@test.local"],
+      "steps": [
+        {"action": "navigate", "url": "/login"},
+        {"action": "fill", "selector": "#email", "value": "user@test.local"},
+        {"action": "fill", "selector": "#password", "value": "wrongpassword"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 500},
+        {"action": "repeat", "count": 4, "steps_ref": [1, 2, 3, 4]},
+        {"action": "fill", "selector": "#password", "value": "TestPass123!"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "Too many login attempts"},
+        {"type": "url_not_contains", "value": "/razors"}
+      ]
+    },
+    {
+      "id": "TEST-AUTH-002",
+      "category": "auth",
+      "name": "CSRF protection",
+      "description": "Verify CSRF tokens are validated on form submission",
+      "steps": [
+        {"action": "navigate", "url": "/login"},
+        {"action": "fill", "selector": "#email", "value": "user@test.local"},
+        {"action": "fill", "selector": "#password", "value": "TestPass123!"},
+        {"action": "modify_field", "selector": "input[name=csrf_token]", "value": "invalid_token"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["CSRF", "Invalid request", "403"]}
+      ]
+    },
+    {
+      "id": "TEST-AUTH-003",
+      "category": "auth",
+      "name": "Session fixation prevention",
+      "description": "Verify session ID changes after login",
+      "steps": [
+        {"action": "navigate", "url": "/login"},
+        {"action": "get_cookie", "name": "razor_library_session", "store_as": "session_before"},
+        {"action": "fill", "selector": "#email", "value": "user@test.local"},
+        {"action": "fill", "selector": "#password", "value": "TestPass123!"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 1000},
+        {"action": "get_cookie", "name": "razor_library_session", "store_as": "session_after"}
+      ],
+      "assertions": [
+        {"type": "values_different", "value1": "{{session_before}}", "value2": "{{session_after}}"}
+      ]
+    },
+    {
+      "id": "TEST-AUTH-004",
+      "category": "auth",
+      "name": "Password hashing verification",
+      "description": "Verify passwords are stored as bcrypt hashes",
+      "type": "database",
+      "query": "SELECT password_hash FROM users WHERE email = 'user@test.local'",
+      "assertions": [
+        {"type": "field_matches", "field": "password_hash", "pattern": "^\\$2[ayb]\\$"}
+      ]
+    },
+    {
+      "id": "TEST-AUTH-005",
+      "category": "auth",
+      "name": "XSS prevention in flash messages",
+      "description": "Verify script tags are escaped in error messages",
+      "steps": [
+        {"action": "navigate", "url": "/login"},
+        {"action": "fill", "selector": "#email", "value": "<script>alert('xss')</script>@test.local"},
+        {"action": "fill", "selector": "#password", "value": "anypassword"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "no_alert"},
+        {"type": "page_contains", "text": "&lt;script&gt;"}
+      ]
+    },
+    {
+      "id": "TEST-REQ-001",
+      "category": "account-requests",
+      "name": "Account request submission",
+      "description": "Verify users can submit account requests",
+      "steps": [
+        {"action": "navigate", "url": "/request-account"},
+        {"action": "fill", "selector": "#name", "value": "Test Requester"},
+        {"action": "fill", "selector": "#email", "value": "requester@test.local"},
+        {"action": "fill", "selector": "#reason", "value": "I want to track my razor collection"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["submitted", "review", "Thank you"]}
+      ]
+    },
+    {
+      "id": "TEST-REQ-002",
+      "category": "account-requests",
+      "name": "Admin approval flow",
+      "description": "Verify admin can approve account requests",
+      "preconditions": ["request_exists:requester@test.local"],
+      "steps": [
+        {"action": "login", "email": "admin@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin/account-requests"},
+        {"action": "click", "selector": "[data-action=approve][data-email='requester@test.local']"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "approved"},
+        {"type": "database", "query": "SELECT status FROM account_requests WHERE email = 'requester@test.local'", "expected": "approved"}
+      ]
+    },
+    {
+      "id": "TEST-REQ-003",
+      "category": "account-requests",
+      "name": "Admin rejection flow",
+      "description": "Verify admin can reject account requests",
+      "preconditions": ["request_exists:rejectme@test.local"],
+      "steps": [
+        {"action": "login", "email": "admin@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin/account-requests"},
+        {"action": "click", "selector": "[data-action=reject][data-email='rejectme@test.local']"},
+        {"action": "fill", "selector": "#rejection_reason", "value": "Not enough information provided"},
+        {"action": "click", "selector": "#confirm-reject"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "rejected"}
+      ]
+    },
+    {
+      "id": "TEST-REQ-004",
+      "category": "account-requests",
+      "name": "Duplicate request prevention",
+      "description": "Verify duplicate requests are blocked",
+      "preconditions": ["request_exists:duplicate@test.local"],
+      "steps": [
+        {"action": "navigate", "url": "/request-account"},
+        {"action": "fill", "selector": "#name", "value": "Duplicate User"},
+        {"action": "fill", "selector": "#email", "value": "duplicate@test.local"},
+        {"action": "fill", "selector": "#reason", "value": "Second request"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["already", "exists", "pending"]}
+      ]
+    },
+    {
+      "id": "TEST-SUB-001",
+      "category": "subscription",
+      "name": "Trial activation on first login",
+      "description": "Verify trial starts on first login",
+      "preconditions": ["fresh_user:newtrialuser@test.local"],
+      "steps": [
+        {"action": "login", "email": "newtrialuser@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile"}
+      ],
+      "assertions": [
+        {"type": "database", "query": "SELECT trial_started_at FROM users WHERE email = 'newtrialuser@test.local'", "expected_not_null": "trial_started_at"},
+        {"type": "page_contains", "text": "trial"}
+      ]
+    },
+    {
+      "id": "TEST-SUB-002",
+      "category": "subscription",
+      "name": "Trial expiry blocking",
+      "description": "Verify expired trial blocks access",
+      "preconditions": ["expired_trial_user:expiredtrial@test.local"],
+      "steps": [
+        {"action": "login", "email": "expiredtrial@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors"}
+      ],
+      "assertions": [
+        {"type": "url_contains", "value": "trial-expired"},
+        {"type": "page_contains_any", "texts": ["expired", "subscribe"]}
+      ]
+    },
+    {
+      "id": "TEST-SUB-005",
+      "category": "subscription",
+      "name": "BMaC webhook signature verification",
+      "description": "Verify invalid webhook signatures are rejected",
+      "type": "api",
+      "request": {
+        "method": "POST",
+        "url": "/webhooks/buymeacoffee",
+        "headers": {
+          "Content-Type": "application/json",
+          "X-BMC-Signature": "invalid_signature_here"
+        },
+        "body": {"type": "membership.started", "data": {"supporter_email": "user@test.local"}}
+      },
+      "assertions": [
+        {"type": "status_code", "expected": 401}
+      ]
+    },
+    {
+      "id": "TEST-SUB-006",
+      "category": "subscription",
+      "name": "Admin subscription override",
+      "description": "Verify admin can set lifetime subscription",
+      "steps": [
+        {"action": "login", "email": "admin@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin/users"},
+        {"action": "click", "selector": "[data-user='user@test.local'] .edit-btn"},
+        {"action": "select", "selector": "#subscription_status", "value": "lifetime"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "database", "query": "SELECT subscription_status FROM users WHERE email = 'user@test.local'", "expected": "lifetime"}
+      ]
+    },
+    {
+      "id": "TEST-DEL-001",
+      "category": "deletion",
+      "name": "Self-service deletion request",
+      "description": "Verify users can delete their own account",
+      "preconditions": ["user_exists:deleteme@test.local"],
+      "steps": [
+        {"action": "login", "email": "deleteme@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile/delete-account"},
+        {"action": "fill", "selector": "#password", "value": "TestPass123!"},
+        {"action": "check", "selector": "#confirm_deletion"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "url_contains", "value": "/login"},
+        {"type": "database", "query": "SELECT deleted_at FROM users WHERE email = 'deleteme@test.local'", "expected_not_null": "deleted_at"}
+      ]
+    },
+    {
+      "id": "TEST-DEL-002",
+      "category": "deletion",
+      "name": "30-day recovery window",
+      "description": "Verify deleted accounts can be recovered within 30 days",
+      "preconditions": ["deleted_user:recoverable@test.local"],
+      "steps": [
+        {"action": "navigate", "url": "/recover-account"},
+        {"action": "fill", "selector": "#email", "value": "recoverable@test.local"},
+        {"action": "fill", "selector": "#password", "value": "TestPass123!"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["recovered", "restored", "reactivated"]},
+        {"type": "database", "query": "SELECT deleted_at FROM users WHERE email = 'recoverable@test.local'", "expected_null": "deleted_at"}
+      ]
+    },
+    {
+      "id": "TEST-API-001",
+      "category": "api",
+      "name": "API key generation",
+      "description": "Verify users can generate API keys",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile/api-keys"},
+        {"action": "fill", "selector": "#key_name", "value": "Test Key"},
+        {"action": "click", "selector": "#generate-key-btn"},
+        {"action": "wait", "ms": 1000},
+        {"action": "get_text", "selector": ".api-key-display", "store_as": "api_key"}
+      ],
+      "assertions": [
+        {"type": "stored_value_matches", "key": "api_key", "pattern": "^[a-zA-Z0-9]{32,}$"}
+      ]
+    },
+    {
+      "id": "TEST-API-002",
+      "category": "api",
+      "name": "API authentication",
+      "description": "Verify API requests work with valid key",
+      "preconditions": ["api_key_exists:user@test.local"],
+      "type": "api",
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/razors",
+        "headers": {
+          "Authorization": "Bearer {{api_key}}"
+        }
+      },
+      "assertions": [
+        {"type": "status_code", "expected": 200},
+        {"type": "response_is_json"},
+        {"type": "json_has_key", "key": "data"}
+      ]
+    },
+    {
+      "id": "TEST-API-003",
+      "category": "api",
+      "name": "Invalid API key rejection",
+      "description": "Verify invalid API keys are rejected",
+      "type": "api",
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/razors",
+        "headers": {
+          "Authorization": "Bearer invalid_key_12345"
+        }
+      },
+      "assertions": [
+        {"type": "status_code", "expected": 401},
+        {"type": "json_has_key", "key": "error"}
+      ]
+    },
+    {
+      "id": "TEST-API-004",
+      "category": "api",
+      "name": "API rate limiting",
+      "description": "Verify API requests are rate limited",
+      "preconditions": ["api_key_exists:user@test.local"],
+      "type": "api_batch",
+      "requests": {
+        "count": 101,
+        "method": "GET",
+        "url": "/api/v1/razors",
+        "headers": {
+          "Authorization": "Bearer {{api_key}}"
+        }
+      },
+      "assertions": [
+        {"type": "last_status_code", "expected": 429}
+      ]
+    },
+    {
+      "id": "TEST-API-005",
+      "category": "api",
+      "name": "API CRUD operations",
+      "description": "Verify all CRUD operations work via API",
+      "preconditions": ["api_key_exists:user@test.local"],
+      "type": "api_sequence",
+      "requests": [
+        {
+          "name": "create",
+          "method": "POST",
+          "url": "/api/v1/razors",
+          "body": {"name": "API Test Razor", "description": "Created via API"},
+          "store_response": "created_razor"
+        },
+        {
+          "name": "read",
+          "method": "GET",
+          "url": "/api/v1/razors/{{created_razor.data.id}}"
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "url": "/api/v1/razors/{{created_razor.data.id}}",
+          "body": {"name": "Updated API Razor"}
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "url": "/api/v1/razors/{{created_razor.data.id}}"
+        }
+      ],
+      "assertions": [
+        {"type": "request_status", "request": "create", "expected": 201},
+        {"type": "request_status", "request": "read", "expected": 200},
+        {"type": "request_status", "request": "update", "expected": 200},
+        {"type": "request_status", "request": "delete", "expected": 204}
+      ]
+    },
+    {
+      "id": "TEST-API-006",
+      "category": "api",
+      "name": "Cross-user data isolation",
+      "description": "Verify users cannot access other users' data",
+      "preconditions": ["api_key_exists:user@test.local", "razor_exists:admin@test.local"],
+      "type": "api",
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/razors/{{admin_razor_id}}",
+        "headers": {
+          "Authorization": "Bearer {{user_api_key}}"
+        }
+      },
+      "assertions": [
+        {"type": "status_code", "expected": 404}
+      ]
+    },
+    {
+      "id": "TEST-FIELD-001",
+      "category": "fields",
+      "name": "Year manufactured on razors",
+      "description": "Verify year_manufactured field works",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors/create"},
+        {"action": "fill", "selector": "#name", "value": "Vintage Gillette"},
+        {"action": "fill", "selector": "#year_manufactured", "value": "1965"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 500}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "1965"}
+      ]
+    },
+    {
+      "id": "TEST-FIELD-002",
+      "category": "fields",
+      "name": "Year validation",
+      "description": "Verify invalid years are rejected",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors/create"},
+        {"action": "fill", "selector": "#name", "value": "Future Razor"},
+        {"action": "fill", "selector": "#year_manufactured", "value": "2099"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["invalid", "error", "must be"]}
+      ]
+    },
+    {
+      "id": "TEST-FIELD-003",
+      "category": "fields",
+      "name": "Country manufactured on razors",
+      "description": "Verify country_manufactured field works for razors",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors/create"},
+        {"action": "fill", "selector": "#name", "value": "German Razor"},
+        {"action": "fill", "selector": "#country_manufactured", "value": "Germany"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 500}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "Germany"}
+      ]
+    },
+    {
+      "id": "TEST-FIELD-004",
+      "category": "fields",
+      "name": "Country manufactured on blades",
+      "description": "Verify country_manufactured field works for blades",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/blades/create"},
+        {"action": "fill", "selector": "#name", "value": "Japanese Blade"},
+        {"action": "fill", "selector": "#country_manufactured", "value": "Japan"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 500}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "Japan"}
+      ]
+    },
+    {
+      "id": "TEST-FIELD-005",
+      "category": "fields",
+      "name": "Sorting by year",
+      "description": "Verify sorting by year works correctly",
+      "preconditions": ["razors_exist_with_years"],
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors?sort=year_asc"}
+      ],
+      "assertions": [
+        {"type": "elements_ordered", "selector": ".razor-card .year", "order": "ascending"}
+      ]
+    },
+    {
+      "id": "TEST-SEARCH-001",
+      "category": "search",
+      "name": "Basic search",
+      "description": "Verify basic search functionality",
+      "preconditions": ["razors_exist:Gillette Slim,Merkur 34C,Gillette Tech"],
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors"},
+        {"action": "fill", "selector": "#search", "value": "Gillette"},
+        {"action": "click", "selector": "#search-btn"},
+        {"action": "wait", "ms": 500}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "Gillette Slim"},
+        {"type": "page_contains", "text": "Gillette Tech"},
+        {"type": "page_not_contains", "text": "Merkur 34C"}
+      ]
+    },
+    {
+      "id": "TEST-SEARCH-002",
+      "category": "search",
+      "name": "Search across fields",
+      "description": "Verify search includes notes field",
+      "preconditions": ["razor_with_notes:Birthday gift from wife"],
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors"},
+        {"action": "fill", "selector": "#search", "value": "birthday"},
+        {"action": "click", "selector": "#search-btn"}
+      ],
+      "assertions": [
+        {"type": "results_count", "selector": ".razor-card", "min": 1}
+      ]
+    },
+    {
+      "id": "TEST-EMAIL-001",
+      "category": "email-prefs",
+      "name": "Default preferences on new user",
+      "description": "Verify new users have correct default email preferences",
+      "preconditions": ["fresh_user:emailprefs@test.local"],
+      "type": "database",
+      "query": "SELECT email_trial_warnings, email_renewal_reminders, email_account_updates, email_marketing FROM users WHERE email = 'emailprefs@test.local'",
+      "assertions": [
+        {"type": "field_equals", "field": "email_trial_warnings", "expected": 1},
+        {"type": "field_equals", "field": "email_renewal_reminders", "expected": 1},
+        {"type": "field_equals", "field": "email_account_updates", "expected": 1},
+        {"type": "field_equals", "field": "email_marketing", "expected": 0}
+      ]
+    },
+    {
+      "id": "TEST-EMAIL-002",
+      "category": "email-prefs",
+      "name": "Update preferences",
+      "description": "Verify users can update email preferences",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile/email-preferences"},
+        {"action": "uncheck", "selector": "#email_trial_warnings"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "database", "query": "SELECT email_trial_warnings FROM users WHERE email = 'user@test.local'", "expected": 0}
+      ]
+    },
+    {
+      "id": "TEST-EMAILCHANGE-001",
+      "category": "email-change",
+      "name": "Initiate email change",
+      "description": "Verify email change initiates verification",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile"},
+        {"action": "fill", "selector": "#email", "value": "newemail@test.local"},
+        {"action": "click", "selector": "button[type=submit]"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["verification", "email sent", "confirm"]},
+        {"type": "database", "query": "SELECT pending_email FROM users WHERE email = 'user@test.local'", "expected": "newemail@test.local"}
+      ]
+    },
+    {
+      "id": "TEST-LOG-001",
+      "category": "activity-log",
+      "name": "Login logged",
+      "description": "Verify login events are logged",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "logout"},
+        {"action": "login", "email": "admin@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin/activity-log"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "user@test.local"},
+        {"type": "page_contains", "text": "login"}
+      ]
+    },
+    {
+      "id": "TEST-LOG-003",
+      "category": "activity-log",
+      "name": "Admin-only access",
+      "description": "Verify regular users cannot access activity log",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin/activity-log"}
+      ],
+      "assertions": [
+        {"type": "status_code", "expected": 403}
+      ]
+    },
+    {
+      "id": "TEST-ERR-001",
+      "category": "error-pages",
+      "name": "404 page styling",
+      "description": "Verify 404 page has correct styling",
+      "steps": [
+        {"action": "navigate", "url": "/nonexistent-page-12345"}
+      ],
+      "assertions": [
+        {"type": "status_code", "expected": 404},
+        {"type": "element_exists", "selector": ".auth-container"},
+        {"type": "element_exists", "selector": ".auth-box"},
+        {"type": "page_contains", "text": "404"}
+      ]
+    },
+    {
+      "id": "TEST-ERR-002",
+      "category": "error-pages",
+      "name": "403 page styling",
+      "description": "Verify 403 page has correct styling",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin"}
+      ],
+      "assertions": [
+        {"type": "status_code", "expected": 403},
+        {"type": "element_exists", "selector": ".auth-container"}
+      ]
+    },
+    {
+      "id": "TEST-ERR-003",
+      "category": "error-pages",
+      "name": "Error pages work without login",
+      "description": "Verify error pages render correctly for unauthenticated users",
+      "steps": [
+        {"action": "logout"},
+        {"action": "navigate", "url": "/nonexistent-page"}
+      ],
+      "assertions": [
+        {"type": "status_code", "expected": 404},
+        {"type": "no_php_errors"}
+      ]
+    },
+    {
+      "id": "TEST-REG-001",
+      "category": "regression",
+      "name": "Image upload and gallery",
+      "description": "Verify image upload functionality still works",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors/create"},
+        {"action": "fill", "selector": "#name", "value": "Image Test Razor"},
+        {"action": "upload", "selector": "#images", "files": ["test-image-1.jpg", "test-image-2.jpg", "test-image-3.jpg"]},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "wait", "ms": 1000}
+      ],
+      "assertions": [
+        {"type": "element_count", "selector": ".gallery-image", "expected": 3}
+      ]
+    },
+    {
+      "id": "TEST-REG-002",
+      "category": "regression",
+      "name": "Blade usage tracking",
+      "description": "Verify blade usage tracking still works",
+      "preconditions": ["razor_exists:user@test.local", "blade_exists:user@test.local"],
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/razors/{{razor_id}}"},
+        {"action": "select", "selector": "#blade_id", "value": "{{blade_id}}"},
+        {"action": "fill", "selector": "#usage_count", "value": "5"},
+        {"action": "click", "selector": "#add-usage-btn"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "5"}
+      ]
+    },
+    {
+      "id": "TEST-REG-003",
+      "category": "regression",
+      "name": "Share link",
+      "description": "Verify share links still work",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile"},
+        {"action": "get_attribute", "selector": "#share-link", "attribute": "href", "store_as": "share_url"},
+        {"action": "logout"},
+        {"action": "navigate", "url": "{{share_url}}"}
+      ],
+      "assertions": [
+        {"type": "page_contains", "text": "collection"},
+        {"type": "element_not_exists", "selector": "#logout-btn"}
+      ]
+    },
+    {
+      "id": "TEST-REG-004",
+      "category": "regression",
+      "name": "CSV import",
+      "description": "Verify CSV import still works",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile"},
+        {"action": "select", "selector": "#import_type", "value": "razors"},
+        {"action": "upload", "selector": "#csv_file", "files": ["test-razors.csv"]},
+        {"action": "click", "selector": "#import-btn"}
+      ],
+      "assertions": [
+        {"type": "page_contains_any", "texts": ["imported", "success"]}
+      ]
+    },
+    {
+      "id": "TEST-REG-005",
+      "category": "regression",
+      "name": "Export collection",
+      "description": "Verify export functionality still works",
+      "steps": [
+        {"action": "login", "email": "user@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/profile"},
+        {"action": "click", "selector": "#export-btn"},
+        {"action": "wait_for_download", "timeout": 30000}
+      ],
+      "assertions": [
+        {"type": "download_exists", "pattern": "*.zip"},
+        {"type": "zip_contains", "files": ["razors/*.md"]}
+      ]
+    },
+    {
+      "id": "TEST-REG-006",
+      "category": "regression",
+      "name": "Admin backup/restore",
+      "description": "Verify backup and restore still works",
+      "steps": [
+        {"action": "login", "email": "admin@test.local", "password": "TestPass123!"},
+        {"action": "navigate", "url": "/admin"},
+        {"action": "click", "selector": "#create-backup-btn"},
+        {"action": "wait", "ms": 5000},
+        {"action": "page_contains", "text": "backup"}
+      ],
+      "assertions": [
+        {"type": "element_exists", "selector": ".backup-list .backup-item"}
+      ]
+    }
+  ],
+  "test_data_files": {
+    "test-image-1.jpg": "Create a 100x100 test image",
+    "test-image-2.jpg": "Create a 100x100 test image",
+    "test-image-3.jpg": "Create a 100x100 test image",
+    "test-razors.csv": "Brand,Name,UseCount,Notes\nTest,Razor 1,0,Imported via CSV\nTest,Razor 2,0,Imported via CSV"
+  },
+  "cleanup": {
+    "commands": [
+      "php scripts/reset-database.php --force"
+    ]
+  }
+}
