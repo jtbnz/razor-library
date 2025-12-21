@@ -22,7 +22,7 @@
             <?php endif; ?>
         </div>
         <div class="tile-content">
-            <h3 class="tile-title"><?= e($razor['name']) ?></h3>
+            <h3 class="tile-title"><?= e(trim(($razor['year_manufactured'] ? $razor['year_manufactured'] . ' ' : '') . ($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h3>
         </div>
     </a>
     <?php endforeach; ?>

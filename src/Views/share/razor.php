@@ -1,7 +1,7 @@
 <?php ob_start(); ?>
 
 <div class="page-header">
-    <h1><?= e($razor['name']) ?></h1>
+    <h1><?= e(trim(($razor['year_manufactured'] ? $razor['year_manufactured'] . ' ' : '') . ($razor['brand'] ?? '') . ' ' . $razor['name'])) ?></h1>
 </div>
 
 <!-- Hero Image -->

@@ -233,7 +233,7 @@ $router->post('/admin/users/{id}/subscription', 'SubscriptionController@updateUs
 $router->get('/subscription/expired', 'SubscriptionController@expired', ['auth']);
 
 // Webhooks (no auth required)
-$router->post('/webhooks/bmac', 'WebhookController@bmac');
+$router->post('/webhook/bmac', 'WebhookController@bmac');
 
 // Legal pages (public)
 $router->get('/terms', 'LegalController@terms');
