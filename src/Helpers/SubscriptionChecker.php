@@ -273,6 +273,15 @@ class SubscriptionChecker
     }
 
     /**
+     * Ensure all subscription tables exist (public method for controller use)
+     */
+    public static function ensureTables(): void
+    {
+        self::ensureConfigExists();
+        self::ensureEventsTableExists();
+    }
+
+    /**
      * Ensure the subscription_config table and default row exist
      */
     private static function ensureConfigExists(): void
@@ -292,5 +301,22 @@ class SubscriptionChecker
         Database::query(
             "INSERT OR IGNORE INTO subscription_config (id, trial_days, subscription_check_enabled) VALUES (1, 7, 0)"
         );
+    }
+
+    /**
+     * Ensure the subscription_events table exists
+     */
+    private static function ensureEventsTableExists(): void
+    {
+        Database::connection()->exec("CREATE TABLE IF NOT EXISTS subscription_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            event_type TEXT NOT NULL,
+            details TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        )");
+
+        Database::connection()->exec("CREATE INDEX IF NOT EXISTS idx_subscription_events_user ON subscription_events(user_id)");
     }
 }

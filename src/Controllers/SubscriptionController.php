@@ -40,6 +40,9 @@ class SubscriptionController
             return view('errors/403');
         }
 
+        // Ensure tables exist
+        SubscriptionChecker::ensureTables();
+
         $config = SubscriptionChecker::getConfig();
 
         // Get recent subscription events
@@ -62,39 +65,45 @@ class SubscriptionController
      */
     public function updateSettings(): void
     {
-        if (!is_admin()) {
-            http_response_code(403);
-            echo view('errors/403');
-            return;
-        }
+        try {
+            if (!is_admin()) {
+                http_response_code(403);
+                echo view('errors/403');
+                return;
+            }
 
-        if (!verify_csrf()) {
-            flash('error', 'Invalid request.');
+            if (!verify_csrf()) {
+                flash('error', 'Invalid request.');
+                redirect('/admin/subscription');
+            }
+
+            $settings = [
+                'trial_days' => max(1, intval($_POST['trial_days'] ?? 7)),
+                'subscription_check_enabled' => isset($_POST['subscription_check_enabled']) ? 1 : 0,
+                'expired_message' => trim($_POST['expired_message'] ?? ''),
+                'bmac_webhook_secret' => trim($_POST['bmac_webhook_secret'] ?? ''),
+            ];
+
+            // Only update access token if provided (don't clear it)
+            if (!empty($_POST['bmac_access_token'])) {
+                $settings['bmac_access_token'] = trim($_POST['bmac_access_token']);
+            }
+
+            SubscriptionChecker::updateConfig($settings);
+
+            // Log the change
+            ActivityLogger::logAdminAction('subscription_settings_updated', null, null, [
+                'subscription_check_enabled' => $settings['subscription_check_enabled'],
+                'trial_days' => $settings['trial_days'],
+            ]);
+
+            flash('success', 'Subscription settings updated successfully.');
+            redirect('/admin/subscription');
+        } catch (\Throwable $e) {
+            error_log("Subscription settings update error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+            flash('error', 'An error occurred: ' . $e->getMessage());
             redirect('/admin/subscription');
         }
-
-        $settings = [
-            'trial_days' => max(1, intval($_POST['trial_days'] ?? 7)),
-            'subscription_check_enabled' => isset($_POST['subscription_check_enabled']) ? 1 : 0,
-            'expired_message' => trim($_POST['expired_message'] ?? ''),
-            'bmac_webhook_secret' => trim($_POST['bmac_webhook_secret'] ?? ''),
-        ];
-
-        // Only update access token if provided (don't clear it)
-        if (!empty($_POST['bmac_access_token'])) {
-            $settings['bmac_access_token'] = trim($_POST['bmac_access_token']);
-        }
-
-        SubscriptionChecker::updateConfig($settings);
-
-        // Log the change
-        ActivityLogger::logAdminAction('subscription_settings_updated', null, null, [
-            'subscription_check_enabled' => $settings['subscription_check_enabled'],
-            'trial_days' => $settings['trial_days'],
-        ]);
-
-        flash('success', 'Subscription settings updated successfully.');
-        redirect('/admin/subscription');
     }
 
     /**
