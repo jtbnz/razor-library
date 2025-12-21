@@ -125,6 +125,9 @@ class ProfileController
                 "UPDATE users SET password_hash = ? WHERE id = ?",
                 [$hashedPassword, $userId]
             );
+
+            // Log password change
+            ActivityLogger::logPasswordChange($userId);
         }
 
         // Update user

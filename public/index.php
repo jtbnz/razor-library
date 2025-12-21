@@ -203,6 +203,7 @@ $router->get('/profile/csv-template', 'ProfileController@downloadTemplate', ['au
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);
+$router->get('/admin/activity', 'AdminController@activity', ['auth', 'admin']);
 $router->get('/admin/users/new', 'AdminController@create', ['auth', 'admin']);
 $router->post('/admin/users', 'AdminController@store', ['auth', 'admin']);
 $router->get('/admin/users/{id}/edit', 'AdminController@edit', ['auth', 'admin']);

@@ -2,6 +2,9 @@
 
 <div class="page-header">
     <h1>Administration</h1>
+    <div class="page-header-actions">
+        <a href="<?= url('/admin/activity') ?>" class="btn btn-outline">View Activity Log</a>
+    </div>
 </div>
 
 <!-- User Management Section -->

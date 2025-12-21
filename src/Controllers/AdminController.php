@@ -6,6 +6,59 @@
 class AdminController
 {
     /**
+     * View activity log
+     */
+    public function activity(): string
+    {
+        if (!is_admin()) {
+            http_response_code(403);
+            return view('errors/403');
+        }
+
+        $page = max(1, intval($_GET['page'] ?? 1));
+        $action = $_GET['action'] ?? null;
+        $userId = $_GET['user_id'] ?? null;
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo = $_GET['date_to'] ?? null;
+        $search = $_GET['search'] ?? null;
+
+        $activities = ActivityLogger::getActivities(
+            $page,
+            50,
+            $action ?: null,
+            $userId ? intval($userId) : null,
+            $dateFrom ?: null,
+            $dateTo ?: null,
+            $search ?: null
+        );
+
+        $actionTypes = ActivityLogger::getActionTypes();
+
+        // Get users for filter dropdown
+        $users = Database::fetchAll(
+            "SELECT id, username, email FROM users WHERE deleted_at IS NULL ORDER BY username"
+        );
+
+        return view('admin/activity', [
+            'activities' => $activities['data'],
+            'pagination' => [
+                'page' => $activities['page'],
+                'totalPages' => $activities['totalPages'],
+                'total' => $activities['total'],
+            ],
+            'filters' => [
+                'action' => $action,
+                'user_id' => $userId,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'search' => $search,
+            ],
+            'actionTypes' => $actionTypes,
+            'users' => $users,
+        ]);
+    }
+
+    /**
      * Admin dashboard - list all users
      */
     public function index(): string
@@ -144,6 +197,10 @@ class AdminController
             "INSERT INTO users (username, email, password_hash, is_admin, share_token) VALUES (?, ?, ?, ?, ?)",
             [$username, $email ?: null, $hashedPassword, $isAdmin, $shareToken]
         );
+
+        // Log user creation
+        $newUserId = Database::lastInsertId();
+        ActivityLogger::logUserCreated($newUserId, $email ?: $username, $_SESSION['user_id']);
 
         clear_old();
         flash('success', 'User created successfully.');
@@ -308,6 +365,9 @@ class AdminController
             [$id]
         );
 
+        // Log user deletion
+        ActivityLogger::logUserDeleted($id, $user['email'] ?? $user['username'], $_SESSION['user_id']);
+
         flash('success', 'User deleted successfully.');
         redirect('/admin');
     }
@@ -357,6 +417,9 @@ class AdminController
         $this->addDirectoryToZip($zip, $uploadPath, 'uploads', ['backups']);
 
         $zip->close();
+
+        // Log backup creation
+        ActivityLogger::logAdminAction('backup_created', null, null, ['filename' => $backupFilename]);
 
         flash('success', 'Backup created successfully: ' . $backupFilename);
         redirect('/admin');
