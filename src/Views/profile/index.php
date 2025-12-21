@@ -149,6 +149,17 @@
             </div>
         </div>
 
+        <!-- Email Preferences -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Email Preferences</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Control which emails you receive from Razor Library.</p>
+                <a href="<?= url('/profile/email-preferences') ?>" class="btn btn-outline">Manage Email Preferences</a>
+            </div>
+        </div>
+
         <!-- Import CSV -->
         <div class="card mb-4">
             <div class="card-header">

@@ -972,6 +972,59 @@ class ProfileController
     }
 
     /**
+     * Show email preferences page
+     */
+    public function showEmailPreferences(): string
+    {
+        $userId = $_SESSION['user_id'];
+
+        $user = Database::fetch(
+            "SELECT email_trial_warnings, email_renewal_reminders, email_account_updates, email_marketing
+             FROM users WHERE id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+
+        if (!$user) {
+            redirect('/logout');
+        }
+
+        return view('profile/email-preferences', [
+            'preferences' => $user,
+        ]);
+    }
+
+    /**
+     * Update email preferences
+     */
+    public function updateEmailPreferences(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile/email-preferences');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $emailTrialWarnings = isset($_POST['email_trial_warnings']) ? 1 : 0;
+        $emailRenewalReminders = isset($_POST['email_renewal_reminders']) ? 1 : 0;
+        $emailAccountUpdates = isset($_POST['email_account_updates']) ? 1 : 0;
+        $emailMarketing = isset($_POST['email_marketing']) ? 1 : 0;
+
+        Database::query(
+            "UPDATE users SET email_trial_warnings = ?, email_renewal_reminders = ?, email_account_updates = ?, email_marketing = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$emailTrialWarnings, $emailRenewalReminders, $emailAccountUpdates, $emailMarketing, $userId]
+        );
+
+        // Log the change
+        if (class_exists('ActivityLogger')) {
+            ActivityLogger::logProfileUpdate($userId, ['email_preferences_updated' => true]);
+        }
+
+        flash('success', 'Email preferences updated.');
+        redirect('/profile/email-preferences');
+    }
+
+    /**
      * Show account deletion confirmation page
      */
     public function showDelete(): string
