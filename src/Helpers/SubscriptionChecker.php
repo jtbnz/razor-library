@@ -246,7 +246,7 @@ class SubscriptionChecker
         // Ensure the config row exists
         self::ensureConfigExists();
 
-        $allowedFields = ['bmac_access_token', 'bmac_webhook_secret', 'trial_days', 'subscription_check_enabled', 'expired_message'];
+        $allowedFields = ['bmac_access_token', 'bmac_webhook_secret', 'bmac_membership_url', 'trial_days', 'subscription_check_enabled', 'expired_message'];
         $updates = [];
         $params = [];
 
