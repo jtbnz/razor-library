@@ -129,6 +129,12 @@
             <?= $content ?? '' ?>
         </main>
         <?php endif; ?>
+
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; <?= date('Y') ?> Razor Library. <a href="<?= url('/terms') ?>">Terms and Conditions</a></p>
+            </div>
+        </footer>
     </div>
 
     <script src="<?= asset('js/app.js') ?>"></script>
