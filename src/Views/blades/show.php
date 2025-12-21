@@ -30,11 +30,16 @@
 
 <div class="grid-2">
     <div>
-        <!-- Brand -->
-        <?php if ($blade['brand']): ?>
+        <!-- Brand and Country -->
+        <?php if ($blade['brand'] || $blade['country_manufactured']): ?>
         <div class="detail-section">
-            <h3>Brand</h3>
-            <p><?= e($blade['brand']) ?></p>
+            <h3>Details</h3>
+            <?php if ($blade['brand']): ?>
+            <p><strong>Brand:</strong> <?= e($blade['brand']) ?></p>
+            <?php endif; ?>
+            <?php if ($blade['country_manufactured']): ?>
+            <p><strong>Country:</strong> <?= e($blade['country_manufactured']) ?></p>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 

@@ -30,6 +30,19 @@
 
 <div class="grid-2">
     <div>
+        <!-- Year and Country -->
+        <?php if ($razor['year_manufactured'] || $razor['country_manufactured']): ?>
+        <div class="detail-section">
+            <h3>Manufacturing Details</h3>
+            <?php if ($razor['year_manufactured']): ?>
+            <p><strong>Year:</strong> <?= e($razor['year_manufactured']) ?></p>
+            <?php endif; ?>
+            <?php if ($razor['country_manufactured']): ?>
+            <p><strong>Country:</strong> <?= e($razor['country_manufactured']) ?></p>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Description -->
         <?php if ($razor['description']): ?>
         <div class="detail-section">

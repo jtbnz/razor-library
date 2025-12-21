@@ -16,6 +16,10 @@
         <option value="date_asc" <?= $sort === 'date_asc' ? 'selected' : '' ?>>Oldest First</option>
         <option value="usage" <?= $sort === 'usage' ? 'selected' : '' ?>>Most Used</option>
         <option value="last_used" <?= $sort === 'last_used' ? 'selected' : '' ?>>Last Used</option>
+        <option value="year_asc" <?= $sort === 'year_asc' ? 'selected' : '' ?>>Year (Oldest)</option>
+        <option value="year_desc" <?= $sort === 'year_desc' ? 'selected' : '' ?>>Year (Newest)</option>
+        <option value="country_asc" <?= $sort === 'country_asc' ? 'selected' : '' ?>>Country (A-Z)</option>
+        <option value="country_desc" <?= $sort === 'country_desc' ? 'selected' : '' ?>>Country (Z-A)</option>
     </select>
 </div>
 

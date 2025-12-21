@@ -14,6 +14,7 @@
     <a href="<?= url('/blades?sort=date') ?>" class="btn btn-sm <?= $sort === 'date' ? 'btn-primary' : 'btn-outline' ?>">Date Added</a>
     <a href="<?= url('/blades?sort=usage') ?>" class="btn btn-sm <?= $sort === 'usage' ? 'btn-primary' : 'btn-outline' ?>">Most Used</a>
     <a href="<?= url('/blades?sort=last_used') ?>" class="btn btn-sm <?= $sort === 'last_used' ? 'btn-primary' : 'btn-outline' ?>">Last Used</a>
+    <a href="<?= url('/blades?sort=country_asc') ?>" class="btn btn-sm <?= $sort === 'country_asc' ? 'btn-primary' : 'btn-outline' ?>">Country</a>
 </div>
 
 <div class="tile-grid">

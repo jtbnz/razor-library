@@ -17,6 +17,8 @@ class BladeController
             'date' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(bu.count), 0) FROM blade_usage bu WHERE bu.blade_id = blades.id) DESC',
             'last_used' => 'last_used_at DESC NULLS LAST',
+            'country_asc' => 'country_manufactured ASC NULLS LAST',
+            'country_desc' => 'country_manufactured DESC NULLS LAST',
             default => 'name ASC',
         };
 
@@ -57,6 +59,7 @@ class BladeController
         $brand = trim($_POST['brand'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -68,8 +71,8 @@ class BladeController
 
         // Create blade first
         Database::query(
-            "INSERT INTO blades (user_id, name, brand, description, notes) VALUES (?, ?, ?, ?, ?)",
-            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null]
+            "INSERT INTO blades (user_id, name, brand, description, notes, country_manufactured) VALUES (?, ?, ?, ?, ?, ?)",
+            [$userId, $name, $brand ?: null, $description ?: null, $notes ?: null, $countryManufactured ?: null]
         );
 
         $bladeId = Database::lastInsertId();
@@ -231,6 +234,7 @@ class BladeController
         $brand = trim($_POST['brand'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -238,8 +242,8 @@ class BladeController
         }
 
         Database::query(
-            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$name, $brand ?: null, $description ?: null, $notes ?: null, $id]
+            "UPDATE blades SET name = ?, brand = ?, description = ?, notes = ?, country_manufactured = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$name, $brand ?: null, $description ?: null, $notes ?: null, $countryManufactured ?: null, $id]
         );
 
         flash('success', 'Blade updated successfully.');

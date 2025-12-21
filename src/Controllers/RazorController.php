@@ -25,6 +25,10 @@ class RazorController
             'date_desc' => 'created_at DESC',
             'usage' => '(SELECT COALESCE(SUM(count), 0) FROM blade_usage WHERE razor_id = razors.id) DESC',
             'last_used' => 'last_used_at DESC NULLS LAST',
+            'year_asc' => 'year_manufactured ASC NULLS LAST',
+            'year_desc' => 'year_manufactured DESC NULLS LAST',
+            'country_asc' => 'country_manufactured ASC NULLS LAST',
+            'country_desc' => 'country_manufactured DESC NULLS LAST',
             default => 'name ASC',
         };
 
@@ -69,6 +73,8 @@ class RazorController
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $yearManufactured = trim($_POST['year_manufactured'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -77,10 +83,25 @@ class RazorController
             return;
         }
 
+        // Validate year if provided
+        if ($yearManufactured !== '') {
+            $year = (int) $yearManufactured;
+            $currentYear = (int) date('Y');
+            if ($year < 1800 || $year > $currentYear) {
+                flash('error', 'Year manufactured must be between 1800 and ' . $currentYear . '.');
+                set_old($_POST);
+                redirect('/razors/new');
+                return;
+            }
+            $yearManufactured = $year;
+        } else {
+            $yearManufactured = null;
+        }
+
         // Create razor first
         Database::query(
-            "INSERT INTO razors (user_id, brand, name, description, notes) VALUES (?, ?, ?, ?, ?)",
-            [$this->userId, $brand ?: null, $name, $description ?: null, $notes ?: null]
+            "INSERT INTO razors (user_id, brand, name, description, notes, year_manufactured, country_manufactured) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [$this->userId, $brand ?: null, $name, $description ?: null, $notes ?: null, $yearManufactured, $countryManufactured ?: null]
         );
 
         $razorId = Database::lastInsertId();
@@ -229,6 +250,8 @@ class RazorController
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        $yearManufactured = trim($_POST['year_manufactured'] ?? '');
+        $countryManufactured = trim($_POST['country_manufactured'] ?? '');
 
         if (empty($name)) {
             flash('error', 'Name is required.');
@@ -236,9 +259,23 @@ class RazorController
             return;
         }
 
+        // Validate year if provided
+        if ($yearManufactured !== '') {
+            $year = (int) $yearManufactured;
+            $currentYear = (int) date('Y');
+            if ($year < 1800 || $year > $currentYear) {
+                flash('error', 'Year manufactured must be between 1800 and ' . $currentYear . '.');
+                redirect('/razors/' . $id . '/edit');
+                return;
+            }
+            $yearManufactured = $year;
+        } else {
+            $yearManufactured = null;
+        }
+
         Database::query(
-            "UPDATE razors SET brand = ?, name = ?, description = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$brand ?: null, $name, $description ?: null, $notes ?: null, $razor['id']]
+            "UPDATE razors SET brand = ?, name = ?, description = ?, notes = ?, year_manufactured = ?, country_manufactured = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$brand ?: null, $name, $description ?: null, $notes ?: null, $yearManufactured, $countryManufactured ?: null, $razor['id']]
         );
 
         flash('success', 'Razor updated successfully.');

@@ -18,6 +18,12 @@
     </div>
 
     <div class="form-group">
+        <label for="country_manufactured" class="form-label">Country of Manufacture</label>
+        <input type="text" id="country_manufactured" name="country_manufactured" class="form-input"
+               value="<?= e(old('country_manufactured')) ?>" placeholder="e.g., Germany, Russia, Japan">
+    </div>
+
+    <div class="form-group">
         <label for="description" class="form-label">Description</label>
         <textarea id="description" name="description" class="form-input" rows="3"><?= e(old('description')) ?></textarea>
     </div>
