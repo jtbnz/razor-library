@@ -138,6 +138,17 @@
             </div>
         </div>
 
+        <!-- API Access -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>API Access</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Create API keys to access your collection programmatically via our REST API.</p>
+                <a href="<?= url('/profile/api-keys') ?>" class="btn btn-outline">Manage API Keys</a>
+            </div>
+        </div>
+
         <!-- Import CSV -->
         <div class="card mb-4">
             <div class="card-header">

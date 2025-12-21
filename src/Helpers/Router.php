@@ -17,6 +17,16 @@ class Router
         $this->addRoute('POST', $path, $handler, $middleware);
     }
 
+    public function put(string $path, string $handler, array $middleware = []): void
+    {
+        $this->addRoute('PUT', $path, $handler, $middleware);
+    }
+
+    public function delete(string $path, string $handler, array $middleware = []): void
+    {
+        $this->addRoute('DELETE', $path, $handler, $middleware);
+    }
+
     private function addRoute(string $method, string $path, string $handler, array $middleware): void
     {
         // Convert path parameters to regex

@@ -243,5 +243,33 @@ $router->get('/admin/requests', 'AccountRequestController@pending', ['auth', 'ad
 $router->post('/admin/requests/{id}/approve', 'AccountRequestController@approve', ['auth', 'admin']);
 $router->post('/admin/requests/{id}/reject', 'AccountRequestController@reject', ['auth', 'admin']);
 
+// API Key Management
+$router->get('/profile/api-keys', 'ApiKeyController@index', ['auth']);
+$router->post('/profile/api-keys', 'ApiKeyController@create', ['auth']);
+$router->post('/profile/api-keys/{id}/revoke', 'ApiKeyController@revoke', ['auth']);
+
+// REST API Endpoints
+$router->get('/api/stats', 'ApiController@getStats');
+$router->get('/api/razors', 'ApiController@listRazors');
+$router->get('/api/razors/{id}', 'ApiController@getRazor');
+$router->post('/api/razors', 'ApiController@createRazor');
+$router->put('/api/razors/{id}', 'ApiController@updateRazor');
+$router->delete('/api/razors/{id}', 'ApiController@deleteRazor');
+$router->get('/api/blades', 'ApiController@listBlades');
+$router->get('/api/blades/{id}', 'ApiController@getBlade');
+$router->post('/api/blades', 'ApiController@createBlade');
+$router->put('/api/blades/{id}', 'ApiController@updateBlade');
+$router->delete('/api/blades/{id}', 'ApiController@deleteBlade');
+$router->get('/api/brushes', 'ApiController@listBrushes');
+$router->get('/api/brushes/{id}', 'ApiController@getBrush');
+$router->post('/api/brushes', 'ApiController@createBrush');
+$router->put('/api/brushes/{id}', 'ApiController@updateBrush');
+$router->delete('/api/brushes/{id}', 'ApiController@deleteBrush');
+$router->get('/api/other', 'ApiController@listOtherItems');
+$router->get('/api/other/{id}', 'ApiController@getOtherItem');
+$router->post('/api/other', 'ApiController@createOtherItem');
+$router->put('/api/other/{id}', 'ApiController@updateOtherItem');
+$router->delete('/api/other/{id}', 'ApiController@deleteOtherItem');
+
 // Dispatch the request
 $router->dispatch($requestMethod, $requestUri);
