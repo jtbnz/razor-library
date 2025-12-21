@@ -45,13 +45,6 @@
                     <h4 class="mb-3">Buy Me a Coffee Integration</h4>
 
                     <div class="form-group">
-                        <label for="bmac_access_token" class="form-label">API Access Token</label>
-                        <input type="password" id="bmac_access_token" name="bmac_access_token" class="form-input"
-                               placeholder="<?= !empty($config['bmac_access_token']) ? '••••••••' : 'Enter token' ?>">
-                        <p class="form-hint">Leave blank to keep existing token. Get this from BMaC developer settings.</p>
-                    </div>
-
-                    <div class="form-group">
                         <label for="bmac_webhook_secret" class="form-label">Webhook Secret</label>
                         <input type="password" id="bmac_webhook_secret" name="bmac_webhook_secret" class="form-input"
                                placeholder="<?= !empty($config['bmac_webhook_secret']) ? '••••••••' : 'Enter secret' ?>">
