@@ -183,4 +183,44 @@ class Mailer
 
         return self::send($to, $subject, $body);
     }
+
+    /**
+     * Send email verification for email change
+     */
+    public static function sendEmailVerification(string $to, string $username, string $token): bool
+    {
+        $verifyUrl = config('APP_URL') . '/verify-email/' . $token;
+        $appName = config('APP_NAME');
+
+        $subject = "Verify your new email address - {$appName}";
+
+        $body = "Hi {$username},\n\n";
+        $body .= "You requested to change your email address on {$appName}.\n\n";
+        $body .= "Click the link below to verify this new email address:\n";
+        $body .= "{$verifyUrl}\n\n";
+        $body .= "This link will expire in 24 hours.\n\n";
+        $body .= "If you didn't request this change, you can safely ignore this email.\n\n";
+        $body .= "- {$appName}";
+
+        return self::send($to, $subject, $body);
+    }
+
+    /**
+     * Send notification about email change to old email (security alert)
+     */
+    public static function sendEmailChangedNotification(string $oldEmail, string $username, string $newEmail): bool
+    {
+        $appName = config('APP_NAME');
+
+        $subject = "Your {$appName} email address was changed";
+
+        $body = "Hi {$username},\n\n";
+        $body .= "This is a security notification to let you know that the email address on your {$appName} account was changed.\n\n";
+        $body .= "New email address: {$newEmail}\n\n";
+        $body .= "If you made this change, no action is needed.\n\n";
+        $body .= "If you did NOT make this change, please contact us immediately as your account may have been compromised.\n\n";
+        $body .= "- {$appName}";
+
+        return self::send($oldEmail, $subject, $body);
+    }
 }

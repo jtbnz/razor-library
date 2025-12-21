@@ -200,6 +200,8 @@ $router->post('/profile/regenerate-share-token', 'ProfileController@regenerateSh
 $router->get('/profile/export', 'ProfileController@export', ['auth']);
 $router->post('/profile/import-csv', 'ProfileController@importCsv', ['auth']);
 $router->get('/profile/csv-template', 'ProfileController@downloadTemplate', ['auth']);
+$router->get('/verify-email/{token}', 'ProfileController@verifyEmail');
+$router->post('/profile/cancel-email-change', 'ProfileController@cancelEmailChange', ['auth']);
 
 // Admin
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);

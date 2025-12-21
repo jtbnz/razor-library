@@ -79,23 +79,32 @@ class ProfileController
             redirect('/profile');
         }
 
-        // Validate email if provided
-        if (!empty($email) && !is_valid_email($email)) {
-            flash('error', 'Please enter a valid email address.');
-            redirect('/profile');
-        }
+        // Validate email if provided and different from current
+        $emailChanged = false;
+        if (!empty($email) && $email !== $user['email']) {
+            if (!is_valid_email($email)) {
+                flash('error', 'Please enter a valid email address.');
+                redirect('/profile');
+            }
 
-        // Check if email is taken by another user
-        if (!empty($email)) {
+            // Check if email is taken by another user
             $existingEmail = Database::fetch(
-                "SELECT id FROM users WHERE email = ? AND id != ? AND deleted_at IS NULL",
-                [$email, $userId]
+                "SELECT id FROM users WHERE (email = ? OR pending_email = ?) AND id != ? AND deleted_at IS NULL",
+                [$email, $email, $userId]
             );
 
             if ($existingEmail) {
                 flash('error', 'Email is already in use.');
                 redirect('/profile');
             }
+
+            // Rate limit email changes (1 per hour)
+            if (RateLimiter::isLimited($userId, 'email_change', 1, 3600)) {
+                flash('error', 'You can only change your email once per hour. Please try again later.');
+                redirect('/profile');
+            }
+
+            $emailChanged = true;
         }
 
         // Handle password change
@@ -130,13 +139,96 @@ class ProfileController
             ActivityLogger::logPasswordChange($userId);
         }
 
-        // Update user
+        // Update username
         Database::query(
-            "UPDATE users SET username = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-            [$username, $email ?: null, $userId]
+            "UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$username, $userId]
         );
 
-        flash('success', 'Profile updated successfully.');
+        // Handle email change with verification
+        if ($emailChanged) {
+            $token = generate_token(32);
+            $expires = date('Y-m-d H:i:s', time() + 86400); // 24 hours
+
+            Database::query(
+                "UPDATE users SET pending_email = ?, email_verification_token = ?, email_verification_expires = ? WHERE id = ?",
+                [$email, $token, $expires, $userId]
+            );
+
+            RateLimiter::hit($userId, 'email_change');
+
+            // Send verification email to NEW address
+            Mailer::sendEmailVerification($email, $user['username'], $token);
+
+            // Log email change initiation
+            ActivityLogger::log('email_change_initiated', 'user', $userId, ['new_email' => $email]);
+
+            flash('success', 'Profile updated. Please check your new email address for a verification link.');
+        } else {
+            flash('success', 'Profile updated successfully.');
+        }
+
+        redirect('/profile');
+    }
+
+    /**
+     * Verify email change
+     */
+    public function verifyEmail(string $token): void
+    {
+        $user = Database::fetch(
+            "SELECT * FROM users WHERE email_verification_token = ? AND email_verification_expires > CURRENT_TIMESTAMP AND deleted_at IS NULL",
+            [$token]
+        );
+
+        if (!$user) {
+            flash('error', 'Invalid or expired verification link. Please request a new one from your profile.');
+            redirect('/login');
+            return;
+        }
+
+        $oldEmail = $user['email'];
+        $newEmail = $user['pending_email'];
+
+        // Update email and clear verification fields
+        Database::query(
+            "UPDATE users SET email = ?, pending_email = NULL, email_verification_token = NULL, email_verification_expires = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$newEmail, $user['id']]
+        );
+
+        // Log email change completion
+        ActivityLogger::log('email_changed', 'user', $user['id'], ['old_email' => $oldEmail, 'new_email' => $newEmail], $user['id']);
+
+        // Notify old email about the change (security alert)
+        if ($oldEmail) {
+            Mailer::sendEmailChangedNotification($oldEmail, $user['username'], $newEmail);
+        }
+
+        flash('success', 'Your email address has been successfully updated.');
+        redirect('/profile');
+    }
+
+    /**
+     * Cancel pending email change
+     */
+    public function cancelEmailChange(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'Invalid request.');
+            redirect('/profile');
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        Database::query(
+            "UPDATE users SET pending_email = NULL, email_verification_token = NULL, email_verification_expires = NULL WHERE id = ?",
+            [$userId]
+        );
+
+        // Log cancellation
+        ActivityLogger::log('email_change_cancelled', 'user', $userId);
+
+        flash('success', 'Pending email change has been cancelled.');
         redirect('/profile');
     }
 

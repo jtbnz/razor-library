@@ -23,7 +23,17 @@
                     <div class="form-group">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" id="email" name="email" class="form-input" value="<?= e($user['email'] ?? '') ?>" placeholder="your@email.com">
-                        <p class="form-hint">Used for password reset only.</p>
+                        <p class="form-hint">Used for password reset and notifications.</p>
+                        <?php if (!empty($user['pending_email'])): ?>
+                        <div class="alert alert-info mt-2">
+                            <strong>Pending email change:</strong> <?= e($user['pending_email']) ?>
+                            <br><small>Please check your new email address for a verification link.</small>
+                            <form action="<?= url('/profile/cancel-email-change') ?>" method="POST" style="display: inline;">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm btn-outline mt-2">Cancel Change</button>
+                            </form>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <hr class="my-4">
